@@ -9,10 +9,12 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 var identityConnectionstring = builder.Configuration.GetConnectionString("IdentityDb") ?? throw new InvalidOperationException("Connection string 'IdentityDb' not found.");
 var programProConnectionstring = builder.Configuration.GetConnectionString("ProgramProDb") ?? throw new InvalidOperationException("Connection string 'ProgramProDb' not found.");
+
 builder.Services.AddDbContext<IdentityContext>(options =>
     options.UseSqlServer(identityConnectionstring));
 builder.Services.AddDbContext<ProgramProDbContext>(options =>
     options.UseSqlServer(programProConnectionstring));
+
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)

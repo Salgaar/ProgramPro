@@ -2,9 +2,11 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @using ProgramPro.Shared
+@using System.Security.Claims
 @attribute [Authorize]
 @inject HttpClient Http
-@inject IAuthorizationService AuthorizationService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
 
 <PageTitle>Weather forecast</PageTitle>
 
@@ -12,7 +14,7 @@
 
 <p>This component demonstrates fetching data from the server.</p>
 
-@if (forecasts == null)
+@if (statistics == null)
 {
     <p><em>Loading...</em></p>
 }
@@ -28,13 +30,10 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var forecast in forecasts)
+            @foreach (var forecast in statistics)
             {
                 <tr>
-                    <td>@forecast.Date.ToShortDateString()</td>
-                    <td>@forecast.TemperatureC</td>
-                    <td>@forecast.TemperatureF</td>
-                    <td>@forecast.Summary</td>
+
                 </tr>
             }
         </tbody>
@@ -42,20 +41,18 @@ else
 }
 
 @code {
-    private WeatherForecast[]? forecasts;
-    [CascadingParameter]
-    private Task<AuthenticationState>? authenticationState { get; set; }
     private string id = null;
+    private List<Statistics> statistics = new List<Statistics>();
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            var authState = await authenticationState;
-            var user = authState?.User;
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
             id = $"User Id: {user.FindFirst(c => c.Type == "sub")?.Value}";
             StateHasChanged();
-            forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("WeatherForecast");
+            statistics = await Http.GetFromJsonAsync<List<Statistics>>("api/Statistics");
         }
         catch (AccessTokenNotAvailableException exception)
         {
