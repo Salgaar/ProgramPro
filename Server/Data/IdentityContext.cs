@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using ProgramPro.Server.Models;
+using ProgramPro.Shared.Models;
 
 namespace ProgramPro.Server.Data
 {

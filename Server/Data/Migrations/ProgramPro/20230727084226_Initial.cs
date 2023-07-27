@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ProgramPro.Server.Data.Migrations.ProgramPro
 {
     /// <inheritdoc />
-    public partial class initial : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -37,6 +37,20 @@ namespace ProgramPro.Server.Data.Migrations.ProgramPro
                 });
 
             migrationBuilder.CreateTable(
+                name: "Exercises",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Exercises", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Statistics",
                 columns: table => new
                 {
@@ -55,21 +69,70 @@ namespace ProgramPro.Server.Data.Migrations.ProgramPro
                 });
 
             migrationBuilder.CreateTable(
-                name: "TrainingPrograms",
+                name: "Trainingprograms",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_TrainingPrograms", x => x.Id);
+                    table.PrimaryKey("PK_Trainingprograms", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_TrainingPrograms_ApplicationUser_UserId",
+                        name: "FK_Trainingprograms_ApplicationUser_UserId",
                         column: x => x.UserId,
                         principalTable: "ApplicationUser",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "BodyStatistics",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    StatisticsId = table.Column<int>(type: "int", nullable: false),
+                    Weight = table.Column<double>(type: "float", nullable: false),
+                    DateLogged = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BodyStatistics", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_BodyStatistics_Statistics_StatisticsId",
+                        column: x => x.StatisticsId,
+                        principalTable: "Statistics",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ExerciseStatistics",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    StatisticsId = table.Column<int>(type: "int", nullable: false),
+                    ExerciseId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ExerciseStatistics", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ExerciseStatistics_Exercises_ExerciseId",
+                        column: x => x.ExerciseId,
+                        principalTable: "Exercises",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ExerciseStatistics_Statistics_StatisticsId",
+                        column: x => x.StatisticsId,
+                        principalTable: "Statistics",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -84,9 +147,9 @@ namespace ProgramPro.Server.Data.Migrations.ProgramPro
                 {
                     table.PrimaryKey("PK_Goals", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Goals_TrainingPrograms_ProgramId",
+                        name: "FK_Goals_Trainingprograms_ProgramId",
                         column: x => x.ProgramId,
-                        principalTable: "TrainingPrograms",
+                        principalTable: "Trainingprograms",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -103,9 +166,9 @@ namespace ProgramPro.Server.Data.Migrations.ProgramPro
                 {
                     table.PrimaryKey("PK_Results", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Results_TrainingPrograms_ProgramId",
+                        name: "FK_Results_Trainingprograms_ProgramId",
                         column: x => x.ProgramId,
-                        principalTable: "TrainingPrograms",
+                        principalTable: "Trainingprograms",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -116,15 +179,39 @@ namespace ProgramPro.Server.Data.Migrations.ProgramPro
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    ProgramId = table.Column<int>(type: "int", nullable: false)
+                    ProgramId = table.Column<int>(type: "int", nullable: false),
+                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Weeks", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Weeks_TrainingPrograms_ProgramId",
+                        name: "FK_Weeks_Trainingprograms_ProgramId",
                         column: x => x.ProgramId,
-                        principalTable: "TrainingPrograms",
+                        principalTable: "Trainingprograms",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PersonalRecords",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ExerciseStatisticsId = table.Column<int>(type: "int", nullable: false),
+                    DateLogged = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Weight = table.Column<double>(type: "float", nullable: false),
+                    Reps = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PersonalRecords", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PersonalRecords_ExerciseStatistics_ExerciseStatisticsId",
+                        column: x => x.ExerciseStatisticsId,
+                        principalTable: "ExerciseStatistics",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -135,7 +222,8 @@ namespace ProgramPro.Server.Data.Migrations.ProgramPro
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    WeekId = table.Column<int>(type: "int", nullable: false)
+                    WeekId = table.Column<int>(type: "int", nullable: false),
+                    Date = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -154,7 +242,8 @@ namespace ProgramPro.Server.Data.Migrations.ProgramPro
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    DayId = table.Column<int>(type: "int", nullable: false)
+                    DayId = table.Column<int>(type: "int", nullable: false),
+                    ExerciseId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -165,21 +254,33 @@ namespace ProgramPro.Server.Data.Migrations.ProgramPro
                         principalTable: "Days",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Workouts_Exercises_ExerciseId",
+                        column: x => x.ExerciseId,
+                        principalTable: "Exercises",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "CompletedWorkouts",
+                name: "Set",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    WorkoutId = table.Column<int>(type: "int", nullable: false)
+                    WorkoutId = table.Column<int>(type: "int", nullable: false),
+                    Weight = table.Column<double>(type: "float", nullable: false),
+                    Reps = table.Column<int>(type: "int", nullable: false),
+                    RPE = table.Column<double>(type: "float", nullable: false),
+                    RIR = table.Column<int>(type: "int", nullable: false),
+                    PercentageOfOneRepMax = table.Column<int>(type: "int", nullable: false),
+                    Type = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_CompletedWorkouts", x => x.Id);
+                    table.PrimaryKey("PK_Set", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_CompletedWorkouts_Workouts_WorkoutId",
+                        name: "FK_Set_Workouts_WorkoutId",
                         column: x => x.WorkoutId,
                         principalTable: "Workouts",
                         principalColumn: "Id",
@@ -187,28 +288,33 @@ namespace ProgramPro.Server.Data.Migrations.ProgramPro
                 });
 
             migrationBuilder.CreateTable(
-                name: "Exercises",
+                name: "Entries",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    WorkoutId = table.Column<int>(type: "int", nullable: false)
+                    SetId = table.Column<int>(type: "int", nullable: false),
+                    Weight = table.Column<double>(type: "float", nullable: false),
+                    Reps = table.Column<int>(type: "int", nullable: false),
+                    RPE = table.Column<double>(type: "float", nullable: false),
+                    RIR = table.Column<int>(type: "int", nullable: false),
+                    PercentageOfOneRepMax = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Exercises", x => x.Id);
+                    table.PrimaryKey("PK_Entries", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Exercises_Workouts_WorkoutId",
-                        column: x => x.WorkoutId,
-                        principalTable: "Workouts",
+                        name: "FK_Entries_Set_SetId",
+                        column: x => x.SetId,
+                        principalTable: "Set",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_CompletedWorkouts_WorkoutId",
-                table: "CompletedWorkouts",
-                column: "WorkoutId");
+                name: "IX_BodyStatistics_StatisticsId",
+                table: "BodyStatistics",
+                column: "StatisticsId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Days_WeekId",
@@ -216,19 +322,42 @@ namespace ProgramPro.Server.Data.Migrations.ProgramPro
                 column: "WeekId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Exercises_WorkoutId",
-                table: "Exercises",
-                column: "WorkoutId");
+                name: "IX_Entries_SetId",
+                table: "Entries",
+                column: "SetId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ExerciseStatistics_ExerciseId",
+                table: "ExerciseStatistics",
+                column: "ExerciseId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ExerciseStatistics_StatisticsId",
+                table: "ExerciseStatistics",
+                column: "StatisticsId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Goals_ProgramId",
                 table: "Goals",
-                column: "ProgramId");
+                column: "ProgramId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PersonalRecords_ExerciseStatisticsId",
+                table: "PersonalRecords",
+                column: "ExerciseStatisticsId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Results_ProgramId",
                 table: "Results",
-                column: "ProgramId");
+                column: "ProgramId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Set_WorkoutId",
+                table: "Set",
+                column: "WorkoutId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Statistics_UserId",
@@ -236,8 +365,8 @@ namespace ProgramPro.Server.Data.Migrations.ProgramPro
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TrainingPrograms_UserId",
-                table: "TrainingPrograms",
+                name: "IX_Trainingprograms_UserId",
+                table: "Trainingprograms",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
@@ -249,37 +378,54 @@ namespace ProgramPro.Server.Data.Migrations.ProgramPro
                 name: "IX_Workouts_DayId",
                 table: "Workouts",
                 column: "DayId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Workouts_ExerciseId",
+                table: "Workouts",
+                column: "ExerciseId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "CompletedWorkouts");
+                name: "BodyStatistics");
 
             migrationBuilder.DropTable(
-                name: "Exercises");
+                name: "Entries");
 
             migrationBuilder.DropTable(
                 name: "Goals");
 
             migrationBuilder.DropTable(
+                name: "PersonalRecords");
+
+            migrationBuilder.DropTable(
                 name: "Results");
 
             migrationBuilder.DropTable(
-                name: "Statistics");
+                name: "Set");
+
+            migrationBuilder.DropTable(
+                name: "ExerciseStatistics");
 
             migrationBuilder.DropTable(
                 name: "Workouts");
 
             migrationBuilder.DropTable(
+                name: "Statistics");
+
+            migrationBuilder.DropTable(
                 name: "Days");
+
+            migrationBuilder.DropTable(
+                name: "Exercises");
 
             migrationBuilder.DropTable(
                 name: "Weeks");
 
             migrationBuilder.DropTable(
-                name: "TrainingPrograms");
+                name: "Trainingprograms");
 
             migrationBuilder.DropTable(
                 name: "ApplicationUser");

@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using ProgramPro.Server.Data;
-using ProgramPro.Server.Models;
+using ProgramPro.Shared.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
