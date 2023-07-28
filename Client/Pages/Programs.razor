@@ -1,4 +1,4 @@
-﻿@page "/"
+﻿@page "/Programs"
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @using ProgramPro.Shared
@@ -7,19 +7,16 @@
 @inject HttpClient Http
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
-<RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem" Class="rz-p-2">
-        <RadzenCheckBox @bind-Value="@allowVirtualization" Name="allowVirtualization"  />
-        <RadzenLabel Text="Allow virtualization" Component="allowVirtualization" />
-    </RadzenStack>
 
-<RadzenDataList AllowVirtualization=@allowVirtualization Style="@(allowVirtualization ? "height:400px;overflow:auto;" : "")" 
-                    WrapItems="@(!allowVirtualization)" AllowPaging="@(!allowVirtualization)"
-                    Data="@programs" TItem="Trainingprogram" PageSize="5" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true">
-        <Template Context="program">
-            <RadzenCard Style="width: 100%; padding: 0;">
-                <RadzenRow Gap="0">
-                    <RadzenColumn Size="12" SizeLG="3" Class="rz-p-4 product-title">
-                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H5" class="rz-color-secondary">@(program.Name)</RadzenText>
+
+<RadzenDataList AllowVirtualization=@allowVirtualization Style="@(allowVirtualization ? "height:400px;overflow:auto;" : "")"
+                WrapItems="@(!allowVirtualization)" AllowPaging="@(!allowVirtualization)"
+                Data="@programs" TItem="Trainingprogram" PageSize="5" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true">
+    <Template Context="program">
+        <RadzenCard Style="width: 100%; padding: 0;">
+            <RadzenRow Gap="0">
+                <RadzenColumn Size="12" SizeLG="3" Class="rz-p-4 product-title">
+                    <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H5" class="rz-color-secondary">@(program.Name)</RadzenText>
                     </RadzenColumn>
                     <RadzenColumn Size="12" SizeLG="7" Class="rz-p-4">
                         <RadzenRow Gap="0">
@@ -91,5 +88,3 @@
         }
     }
 }
-
-
