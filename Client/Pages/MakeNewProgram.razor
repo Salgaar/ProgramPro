@@ -1,0 +1,73 @@
+﻿@page "/MakeNewProgram"
+@attribute [Authorize]
+@inject HttpClient Http
+
+<RadzenRow>
+    <RadzenColumn>
+        <RadzenRow>
+            <RadzenColumn>
+                <RadzenCard>
+                    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Name</RadzenText>
+                    <RadzenTextBox @oninput=@(args => NameInputChange(args.Value.ToString())) class="w-100" />
+                </RadzenCard>
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenRow>
+            <RadzenColumn>
+                <RadzenCard>
+                    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Description</RadzenText>
+                    <RadzenTextArea class="w-100" />
+                </RadzenCard>
+            </RadzenColumn>
+        </RadzenRow>
+    </RadzenColumn>
+    <RadzenColumn>
+        <RadzenRow>
+            <RadzenColumn>
+                <RadzenButton Click=@(args => AddNewPart()) Text="Add New" Icon="add_circle_outline" ButtonStyle="ButtonStyle.Primary" />
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenRow>
+            <RadzenColumn>
+                <RadzenDataGrid AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="false" FilterMode="FilterMode.Advanced" AllowSorting="true" PageSize="5" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+                                Data="@parts" TItem="Part" ColumnWidth="300px" LogicalFilterOperator="LogicalFilterOperator.Or">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="Part" Property="Name" Filterable="false" Title="Name" Frozen="true" Width="80px" TextAlign="TextAlign.Center" />
+                        <RadzenDataGridColumn TItem="Part" Property="Description" Title="Description" Width="160px" />
+                        <RadzenDataGridColumn TItem="Part" Property="AmountOfDays" Title="Amount Of Days" Width="160px" />
+                        <RadzenDataGridColumn TItem="Part" Property="StartDate" Title="Start Date" FormatString="{0:d}" Width="160px" />
+                    </Columns>
+                </RadzenDataGrid>
+            </RadzenColumn>
+        </RadzenRow>
+    </RadzenColumn>
+</RadzenRow>
+
+@code {
+    private string name;
+    private string userId;
+    List<Part> parts = new List<Part>();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            parts = await Http.GetFromJsonAsync<List<Part>>("api/Parts");
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+
+    private void AddNewPart()
+    {
+        
+    }
+
+    private void NameInputChange(string name)
+    {
+        this.name = name;
+    }
+}

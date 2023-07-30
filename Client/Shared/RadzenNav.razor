@@ -1,0 +1,14 @@
+﻿@inject NavigationManager Nav
+
+<RadzenPanelMenuItem Click="args => To(Href)" Text="@Text" Icon="@Icon" />
+
+@code {
+    [Parameter] public string Href { get; set; } = null;
+    [Parameter] public string Icon { get; set; } = null;
+    [Parameter] public string Text { get; set; } = null;
+
+    private void To(string href)
+    {
+        Nav.NavigateTo(href);
+    }
+}

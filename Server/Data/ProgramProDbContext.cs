@@ -22,9 +22,8 @@ namespace ProgramPro.Server.Data
         public DbSet<Exercise> Exercises { get; set; }
         public DbSet<Goal> Goals { get; set; }
         public DbSet<Trainingprogram> Trainingprograms { get; set; }
-        public DbSet<Result> Results { get; set; }
         public DbSet<Statistics> Statistics { get; set; }
-        public DbSet<Week> Weeks { get; set; }
+        public DbSet<Part> Parts { get; set; }
         public DbSet<Workout> Workouts { get; set; }
         public DbSet<BodyStatistics> BodyStatistics { get; set; }
         public DbSet<Entry> Entries { get; set; }

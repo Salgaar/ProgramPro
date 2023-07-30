@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ProgramPro.Server.Data;
 
@@ -11,9 +12,11 @@ using ProgramPro.Server.Data;
 namespace ProgramPro.Server.Data.Migrations.ProgramPro
 {
     [DbContext(typeof(ProgramProDbContext))]
-    partial class ProgramProDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230730113405_ModelUpdate")]
+    partial class ModelUpdate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -109,12 +112,12 @@ namespace ProgramPro.Server.Data.Migrations.ProgramPro
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("PartId")
+                    b.Property<int>("WeekId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PartId");
+                    b.HasIndex("WeekId");
 
                     b.ToTable("Days");
                 });
@@ -233,36 +236,6 @@ namespace ProgramPro.Server.Data.Migrations.ProgramPro
                     b.ToTable("Goals");
                 });
 
-            modelBuilder.Entity("ProgramPro.Shared.Models.Part", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AmountOfDays")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("TrainingprogramId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TrainingprogramId");
-
-                    b.ToTable("Parts");
-                });
-
             modelBuilder.Entity("ProgramPro.Shared.Models.PersonalRecord", b =>
                 {
                     b.Property<int>("Id")
@@ -377,6 +350,30 @@ namespace ProgramPro.Server.Data.Migrations.ProgramPro
                     b.ToTable("Trainingprograms");
                 });
 
+            modelBuilder.Entity("ProgramPro.Shared.Models.Week", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ProgramId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProgramId");
+
+                    b.ToTable("Weeks");
+                });
+
             modelBuilder.Entity("ProgramPro.Shared.Models.Workout", b =>
                 {
                     b.Property<int>("Id")
@@ -413,13 +410,13 @@ namespace ProgramPro.Server.Data.Migrations.ProgramPro
 
             modelBuilder.Entity("ProgramPro.Shared.Models.Day", b =>
                 {
-                    b.HasOne("ProgramPro.Shared.Models.Part", "Part")
+                    b.HasOne("ProgramPro.Shared.Models.Week", "Week")
                         .WithMany("Days")
-                        .HasForeignKey("PartId")
+                        .HasForeignKey("WeekId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Part");
+                    b.Navigation("Week");
                 });
 
             modelBuilder.Entity("ProgramPro.Shared.Models.Entry", b =>
@@ -471,17 +468,6 @@ namespace ProgramPro.Server.Data.Migrations.ProgramPro
                     b.Navigation("Program");
                 });
 
-            modelBuilder.Entity("ProgramPro.Shared.Models.Part", b =>
-                {
-                    b.HasOne("ProgramPro.Shared.Models.Trainingprogram", "Trainingprogram")
-                        .WithMany("Parts")
-                        .HasForeignKey("TrainingprogramId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Trainingprogram");
-                });
-
             modelBuilder.Entity("ProgramPro.Shared.Models.PersonalRecord", b =>
                 {
                     b.HasOne("ProgramPro.Shared.Models.ExerciseStatistics", "ExerciseStatistics")
@@ -522,6 +508,17 @@ namespace ProgramPro.Server.Data.Migrations.ProgramPro
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("ProgramPro.Shared.Models.Week", b =>
+                {
+                    b.HasOne("ProgramPro.Shared.Models.Trainingprogram", "Program")
+                        .WithMany("Weeks")
+                        .HasForeignKey("ProgramId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Program");
+                });
+
             modelBuilder.Entity("ProgramPro.Shared.Models.Workout", b =>
                 {
                     b.HasOne("ProgramPro.Shared.Models.Day", "Day")
@@ -558,11 +555,6 @@ namespace ProgramPro.Server.Data.Migrations.ProgramPro
                     b.Navigation("PersonalRecords");
                 });
 
-            modelBuilder.Entity("ProgramPro.Shared.Models.Part", b =>
-                {
-                    b.Navigation("Days");
-                });
-
             modelBuilder.Entity("ProgramPro.Shared.Models.Set", b =>
                 {
                     b.Navigation("Entry");
@@ -579,7 +571,12 @@ namespace ProgramPro.Server.Data.Migrations.ProgramPro
                 {
                     b.Navigation("Goals");
 
-                    b.Navigation("Parts");
+                    b.Navigation("Weeks");
+                });
+
+            modelBuilder.Entity("ProgramPro.Shared.Models.Week", b =>
+                {
+                    b.Navigation("Days");
                 });
 
             modelBuilder.Entity("ProgramPro.Shared.Models.Workout", b =>

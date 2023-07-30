@@ -1,13 +1,9 @@
 ﻿@page "/Programs"
-@using Microsoft.AspNetCore.Authorization
-@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
-@using ProgramPro.Shared
-@using System.Security.Claims
+@inject NavigationManager Nav
 @attribute [Authorize]
 @inject HttpClient Http
-@inject AuthenticationStateProvider AuthenticationStateProvider
 
-
+<RadzenButton Click=@(args => MakeNewProgram()) Text="¨Make New" Icon="add_circle_outline" ButtonStyle="ButtonStyle.Primary" />
 
 <RadzenDataList AllowVirtualization=@allowVirtualization Style="@(allowVirtualization ? "height:400px;overflow:auto;" : "")"
                 WrapItems="@(!allowVirtualization)" AllowPaging="@(!allowVirtualization)"
@@ -61,30 +57,22 @@
 
     @code {
     bool allowVirtualization = false;
-    private string id = null;
-    private List<Trainingprogram> programs = new List<Trainingprogram>()
-    {
-        new Trainingprogram
-        {
-             Name = "Test",
-             Description = "Test",
-             Id = 1
-        }
-    };
+    private List<Trainingprogram> programs = new List<Trainingprogram>();
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            await base.OnInitializedAsync();
-            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-            var user = authState.User;
-            id = $"User Id: {user.FindFirst(c => c.Type == "sub")?.Value}";
-            //programs = await Http.GetFromJsonAsync<List<Trainingprogram>>("api/Trainingprograms");
+            programs = await Http.GetFromJsonAsync<List<Trainingprogram>>("api/Trainingprograms");
         }
         catch (AccessTokenNotAvailableException exception)
         {
             exception.Redirect();
         }
+    }
+
+    private void MakeNewProgram()
+    {
+        Nav.NavigateTo("/MakeNewProgram");
     }
 }

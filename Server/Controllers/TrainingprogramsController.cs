@@ -4,9 +4,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration.UserSecrets;
 using ProgramPro.Server.Data;
+using ProgramPro.Server.Helpers;
 using ProgramPro.Shared.Models;
 
 namespace ProgramPro.Server.Controllers
@@ -27,7 +30,7 @@ namespace ProgramPro.Server.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Trainingprogram>>> GetTrainingprograms()
         {
-            return await _context.Trainingprograms.ToListAsync();
+            return await _context.Trainingprograms.Where(x => x.UserId == UserHelper.GetUserId(User)).ToListAsync();
         }
 
         // GET: api/Trainingprograms/5

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,50 +10,49 @@ using ProgramPro.Shared.Models;
 
 namespace ProgramPro.Server.Controllers
 {
-    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
-    public class ResultsController : ControllerBase
+    public class PartsController : ControllerBase
     {
         private readonly ProgramProDbContext _context;
 
-        public ResultsController(ProgramProDbContext context)
+        public PartsController(ProgramProDbContext context)
         {
             _context = context;
         }
 
-        // GET: api/Results
+        // GET: api/Parts
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Result>>> GetResults()
+        public async Task<ActionResult<IEnumerable<Part>>> GetParts()
         {
-            return await _context.Results.ToListAsync();
+            return await _context.Parts.ToListAsync();
         }
 
-        // GET: api/Results/5
+        // GET: api/Parts/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Result>> GetResult(int id)
+        public async Task<ActionResult<Part>> GetPart(int id)
         {
-            var result = await _context.Results.FindAsync(id);
+            var part = await _context.Parts.FindAsync(id);
 
-            if (result == null)
+            if (part == null)
             {
                 return NotFound();
             }
 
-            return result;
+            return part;
         }
 
-        // PUT: api/Results/5
+        // PUT: api/Parts/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutResult(int id, Result result)
+        public async Task<IActionResult> PutPart(int id, Part part)
         {
-            if (id != result.Id)
+            if (id != part.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(result).State = EntityState.Modified;
+            _context.Entry(part).State = EntityState.Modified;
 
             try
             {
@@ -62,7 +60,7 @@ namespace ProgramPro.Server.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ResultExists(id))
+                if (!PartExists(id))
                 {
                     return NotFound();
                 }
@@ -75,36 +73,36 @@ namespace ProgramPro.Server.Controllers
             return NoContent();
         }
 
-        // POST: api/Results
+        // POST: api/Parts
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Result>> PostResult(Result result)
+        public async Task<ActionResult<Part>> PostPart(Part part)
         {
-            _context.Results.Add(result);
+            _context.Parts.Add(part);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetResult", new { id = result.Id }, result);
+            return CreatedAtAction("GetPart", new { id = part.Id }, part);
         }
 
-        // DELETE: api/Results/5
+        // DELETE: api/Parts/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteResult(int id)
+        public async Task<IActionResult> DeletePart(int id)
         {
-            var result = await _context.Results.FindAsync(id);
-            if (result == null)
+            var part = await _context.Parts.FindAsync(id);
+            if (part == null)
             {
                 return NotFound();
             }
 
-            _context.Results.Remove(result);
+            _context.Parts.Remove(part);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool ResultExists(int id)
+        private bool PartExists(int id)
         {
-            return _context.Results.Any(e => e.Id == id);
+            return _context.Parts.Any(e => e.Id == id);
         }
     }
 }
