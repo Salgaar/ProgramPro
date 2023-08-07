@@ -1,0 +1,107 @@
+﻿@page "/Programs/{ProgramId:int}"
+@attribute [Authorize]
+@inject HttpClient Http
+@inject DialogService DialogService
+
+@if (loading)
+{
+    <RadzenRow Gap="2">
+        <RadzenColumn>
+            <RadzenProgressBarCircular Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+        </RadzenColumn>
+    </RadzenRow>
+}
+else
+{
+    if(program != null)
+    {
+        <RadzenRow>
+            <RadzenColumn>
+                <RadzenRow>
+                    <RadzenColumn>
+                        <RadzenCard>
+                            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Name</RadzenText>
+                            <RadzenTextBox Value="@program.Name" @oninput=@(args => NameInputChange(args.Value.ToString())) class="w-100" />
+                        </RadzenCard>
+                    </RadzenColumn>
+                </RadzenRow>
+                <RadzenRow>
+                    <RadzenColumn>
+                        <RadzenCard>
+                            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Description</RadzenText>
+                            <RadzenTextArea class="w-100" />
+                        </RadzenCard>
+                    </RadzenColumn>
+                </RadzenRow>
+            </RadzenColumn>
+
+        </RadzenRow>
+    }
+    else
+    {
+        <RadzenRow>
+            <RadzenColumn>
+                 <RadzenText TextAlign="TextAlign.Center">@message</RadzenText>
+            </RadzenColumn>
+        </RadzenRow>
+    }
+}
+
+
+@*<RadzenColumn>
+    <RadzenRow>
+        <RadzenColumn>
+            <RadzenButton Click=@(async (args) => await OpenAddPart()) Text="Add New" Icon="add_circle_outline" ButtonStyle="ButtonStyle.Primary" />
+        </RadzenColumn>
+    </RadzenRow>
+    <RadzenRow>
+        <RadzenColumn>
+            <RadzenDataGrid AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="false" FilterMode="FilterMode.Advanced" AllowSorting="true" PageSize="5" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+                            Data="@parts" TItem="Part" ColumnWidth="300px" LogicalFilterOperator="LogicalFilterOperator.Or">
+                <Columns>
+                    <RadzenDataGridColumn TItem="Part" Property="Name" Filterable="false" Title="Name" Frozen="true" Width="80px" TextAlign="TextAlign.Center" />
+                    <RadzenDataGridColumn TItem="Part" Property="Description" Title="Description" Width="160px" />
+                    <RadzenDataGridColumn TItem="Part" Property="AmountOfDays" Title="Amount Of Days" Width="160px" />
+                    <RadzenDataGridColumn TItem="Part" Property="StartDate" Title="Start Date" FormatString="{0:d}" Width="160px" />
+                </Columns>
+            </RadzenDataGrid>
+        </RadzenColumn>
+    </RadzenRow>
+</RadzenColumn>*@
+
+@code {
+    [Parameter] public int ProgramId { get; set; }
+    private string name;
+    private string userId;
+    private bool loading = true;
+    List<Part> parts = new List<Part>();
+    Trainingprogram program = null;
+    string message = "";
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            program = await Http.GetFromJsonAsync<Trainingprogram>($"api/Trainingprograms/{ProgramId}");
+            StateHasChanged();
+            loading = false;
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+
+    private async Task OpenAddPart()
+    {
+        await DialogService.OpenAsync<AddPart>($"Add Part",
+            new Dictionary<string, object>() { /*{ "OrderID", orderID }*/ },
+            new DialogOptions() { Width = "700px", Height = "512px", Resizable = true, Draggable = true });
+    }
+
+    private void NameInputChange(string name)
+    {
+        this.name = name;
+    }
+}

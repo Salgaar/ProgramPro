@@ -30,7 +30,8 @@ namespace ProgramPro.Server.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Trainingprogram>>> GetTrainingprograms()
         {
-            return await _context.Trainingprograms.Where(x => x.UserId == UserHelper.GetUserId(User)).ToListAsync();
+            var programs = await _context.Trainingprograms.Where(x => x.UserId == UserHelper.GetUserId(User)).ToListAsync();
+            return programs;
         }
 
         // GET: api/Trainingprograms/5
@@ -83,6 +84,7 @@ namespace ProgramPro.Server.Controllers
         [HttpPost]
         public async Task<ActionResult<Trainingprogram>> PostTrainingprogram(Trainingprogram trainingprogram)
         {
+            trainingprogram.UserId = UserHelper.GetUserId(User);
             _context.Trainingprograms.Add(trainingprogram);
             await _context.SaveChangesAsync();
 
