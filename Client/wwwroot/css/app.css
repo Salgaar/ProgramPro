@@ -99,3 +99,22 @@ a, .btn-link {
     .loading-progress-text:after {
         content: var(--blazor-load-percentage-text, "Loading");
     }
+
+
+.rz-tabview-panel {
+    padding: 0px !important;
+    background-color:transparent !important;
+}
+
+.rz-text-body1 {
+    margin-bottom: 0px !important;
+}
+
+.rz-tabview-panels {
+    margin-top:20px;
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+    flex: 1;
+    overflow: auto;
+}

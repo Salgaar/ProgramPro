@@ -12,8 +12,8 @@ using ProgramPro.Server.Data;
 namespace ProgramPro.Server.Data.Migrations.ProgramPro
 {
     [DbContext(typeof(ProgramProDbContext))]
-    [Migration("20230806225824_Initial")]
-    partial class Initial
+    [Migration("20230808101748_UserIdToString")]
+    partial class UserIdToString
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,58 +24,6 @@ namespace ProgramPro.Server.Data.Migrations.ProgramPro
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("ProgramPro.Shared.Models.ApplicationUser", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("AccessFailedCount")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ConcurrencyStamp")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Email")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("EmailConfirmed")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("LockoutEnabled")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTimeOffset?>("LockoutEnd")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("NormalizedEmail")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("NormalizedUserName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PasswordHash")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PhoneNumber")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("PhoneNumberConfirmed")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("SecurityStamp")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("TwoFactorEnabled")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("UserName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ApplicationUser");
-                });
 
             modelBuilder.Entity("ProgramPro.Shared.Models.BodyStatistics", b =>
                 {
@@ -286,15 +234,10 @@ namespace ProgramPro.Server.Data.Migrations.ProgramPro
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UserId1")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("UserId1");
 
                     b.ToTable("PartDefinitions");
                 });
@@ -385,11 +328,9 @@ namespace ProgramPro.Server.Data.Migrations.ProgramPro
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("Statistics");
                 });
@@ -409,11 +350,9 @@ namespace ProgramPro.Server.Data.Migrations.ProgramPro
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("Trainingprograms");
                 });
@@ -516,15 +455,6 @@ namespace ProgramPro.Server.Data.Migrations.ProgramPro
                     b.Navigation("Program");
                 });
 
-            modelBuilder.Entity("ProgramPro.Shared.Models.PartDefinition", b =>
-                {
-                    b.HasOne("ProgramPro.Shared.Models.ApplicationUser", "User")
-                        .WithMany("PartDefinitions")
-                        .HasForeignKey("UserId1");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("ProgramPro.Shared.Models.PersonalRecord", b =>
                 {
                     b.HasOne("ProgramPro.Shared.Models.ExerciseStatistics", "ExerciseStatistics")
@@ -553,33 +483,6 @@ namespace ProgramPro.Server.Data.Migrations.ProgramPro
                     b.Navigation("Day");
 
                     b.Navigation("Exercise");
-                });
-
-            modelBuilder.Entity("ProgramPro.Shared.Models.Statistics", b =>
-                {
-                    b.HasOne("ProgramPro.Shared.Models.ApplicationUser", "User")
-                        .WithMany("Statistics")
-                        .HasForeignKey("UserId");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("ProgramPro.Shared.Models.Trainingprogram", b =>
-                {
-                    b.HasOne("ProgramPro.Shared.Models.ApplicationUser", "User")
-                        .WithMany("Programs")
-                        .HasForeignKey("UserId");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("ProgramPro.Shared.Models.ApplicationUser", b =>
-                {
-                    b.Navigation("PartDefinitions");
-
-                    b.Navigation("Programs");
-
-                    b.Navigation("Statistics");
                 });
 
             modelBuilder.Entity("ProgramPro.Shared.Models.Day", b =>

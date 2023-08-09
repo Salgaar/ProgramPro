@@ -18,14 +18,14 @@
 </div>*@
 
 
-<RadzenLayout Style="height: 100vh; grid-template-columns: 1fr auto; grid-template-areas: 'rz-header rz-sidebar' 'rz-body rz-sidebar'">
+<RadzenLayout Style="height: 100vh; grid-template-columns: 1fr auto; grid-template-areas: 'rz-header rz-header' 'rz-body rz-sidebar'">
     <RadzenHeader>
         <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" AlignItems="AlignItems.Center" Gap="1rem">
             <LoginDisplay />
             @*<RadzenSidebarToggle Click="@(() => sidebar4Expanded = !sidebar4Expanded)" Class="rz-m-0" />*@
         </RadzenStack>
     </RadzenHeader>
-    <RadzenSidebar  @bind-Expanded="@sidebar4Expanded">
+    <RadzenSidebar >
         <RadzenPanelMenu>
             <RadzenNav Href="" Text="Dashboard" Icon="dashboard" />
             <RadzenNav Href="Programs" Text="Programs" Icon="assignment" />
@@ -39,7 +39,7 @@
 </RadzenLayout>
 
 @code {
-    bool sidebar4Expanded = true;
+    bool sidebarExpanded = true;
 
 
 }

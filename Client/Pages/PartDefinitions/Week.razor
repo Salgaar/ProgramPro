@@ -1,0 +1,11 @@
+﻿<RadzenRow>
+    @for (int i = 7 * WeekNumber + 1, k = 0; i <= NumberOfDays && k < 7; i++, k++)
+    {
+        <Day DayNumber="@i" />
+    }
+</RadzenRow>
+
+@code {
+    [Parameter] public int NumberOfDays { get; set; }
+    [Parameter] public int WeekNumber { get; set; }
+}

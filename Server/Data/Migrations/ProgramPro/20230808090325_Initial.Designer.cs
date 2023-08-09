@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ProgramPro.Server.Data;
 
@@ -11,9 +12,11 @@ using ProgramPro.Server.Data;
 namespace ProgramPro.Server.Data.Migrations.ProgramPro
 {
     [DbContext(typeof(ProgramProDbContext))]
-    partial class ProgramProDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230808090325_Initial")]
+    partial class Initial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -231,8 +234,8 @@ namespace ProgramPro.Server.Data.Migrations.ProgramPro
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 

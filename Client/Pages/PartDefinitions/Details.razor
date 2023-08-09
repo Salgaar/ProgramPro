@@ -1,0 +1,112 @@
+﻿@page "/PartDefinitions/{Id:int}"
+@attribute [Authorize]
+@inject HttpClient Http
+@inject DialogService DialogService
+
+<RadzenTabs RenderMode="TabRenderMode.Client" @bind-SelectedIndex=@selectedIndex>
+    <Tabs>
+        <RadzenTabsItem Style="border-radius: 5px; margin-right:10px;" Text="Details">
+            <RadzenRow>
+                <RadzenColumn>
+                    <RadzenRow>
+                        <RadzenColumn>
+                            <RadzenCard>
+                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Name</RadzenText>
+                                <RadzenTextBox Value="@partDefinition.Name" @oninput=@(args => NameInputChange(args.Value.ToString())) class="w-100" />
+                            </RadzenCard>
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <RadzenRow>
+                        <RadzenColumn>
+                            <RadzenCard>
+                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Description</RadzenText>
+                                <RadzenTextArea class="w-100" />
+                            </RadzenCard>
+                        </RadzenColumn>
+                    </RadzenRow>
+                </RadzenColumn>
+            </RadzenRow>
+        </RadzenTabsItem>
+        <RadzenTabsItem Style="border-radius: 5px;" Text="Days">
+            <RadzenRow>
+                <RadzenColumn>
+                    <RadzenCard>
+                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Number Of Days</RadzenText>
+                        <RadzenNumeric Value="7" @oninput=@(args => DayInputChange(args.Value.ToString())) class="w-100" />
+                    </RadzenCard>
+                </RadzenColumn>
+            </RadzenRow>
+            @while(j <= numberOfWeeks)      // make some custom components and pass the numbers in as parameters
+            {   
+                    <Week NumberOfDays="numberOfDays" WeekNumber="j" />
+                j++;
+            }
+        </RadzenTabsItem>
+    </Tabs>
+</RadzenTabs>
+
+
+
+
+
+
+@*<RadzenColumn>
+    <RadzenRow>
+        <RadzenColumn>
+            <RadzenButton Click=@(async (args) => await OpenAddPart()) Text="Add New" Icon="add_circle_outline" ButtonStyle="ButtonStyle.Primary" />
+        </RadzenColumn>
+    </RadzenRow>
+    <RadzenRow>
+        <RadzenColumn>
+            <RadzenDataGrid AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="false" FilterMode="FilterMode.Advanced" AllowSorting="true" PageSize="5" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+                            Data="@parts" TItem="Part" ColumnWidth="300px" LogicalFilterOperator="LogicalFilterOperator.Or">
+                <Columns>
+                    <RadzenDataGridColumn TItem="Part" Property="Name" Filterable="false" Title="Name" Frozen="true" Width="80px" TextAlign="TextAlign.Center" />
+                    <RadzenDataGridColumn TItem="Part" Property="Description" Title="Description" Width="160px" />
+                    <RadzenDataGridColumn TItem="Part" Property="AmountOfDays" Title="Amount Of Days" Width="160px" />
+                    <RadzenDataGridColumn TItem="Part" Property="StartDate" Title="Start Date" FormatString="{0:d}" Width="160px" />
+                </Columns>
+            </RadzenDataGrid>
+        </RadzenColumn>
+    </RadzenRow>
+</RadzenColumn>*@
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private string name;
+    PartDefinition partDefinition = new PartDefinition();
+    int selectedIndex = 0;
+    int numberOfDays = 7;
+    int numberOfWeeks = 1;
+    int j = 0;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            partDefinition = await Http.GetFromJsonAsync<PartDefinition>($"api/PartDefinitions/{Id}");
+            StateHasChanged();
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }                                              
+    }
+
+    private void NameInputChange(string name)
+    {
+        this.name = name;
+    }
+
+    private void DayInputChange(string days)
+    {
+        if(int.TryParse(days, out int result))
+        {
+            numberOfDays = result;
+            numberOfWeeks = result / 7;
+            j = 0;
+            StateHasChanged();
+        }
+    }
+}

@@ -5,11 +5,14 @@
 @inject HttpClient Http
 
 
- <RadzenRow Gap="4">
-     <RadzenColumn>
-        <RadzenButton Click=@(args => MakeNewProgram()) Text="Make New" Icon="add_circle_outline" ButtonStyle="ButtonStyle.Primary" />
-     </RadzenColumn>
- </RadzenRow>
+<RadzenRow>
+    <RadzenColumn>
+        <RadzenCard Variant="Variant.Text" Style="margin:10px; border-radius: 0px;">
+            <RadzenButton Click=@(args => MakeNewProgram()) Text="Create New" Icon="add_circle_outline" ButtonStyle="ButtonStyle.Success" />
+        </RadzenCard>
+
+    </RadzenColumn>
+</RadzenRow>
 
  <RadzenRow>
      <RadzenColumn>
@@ -35,9 +38,6 @@
                                     <RadzenColumn Size="12" SizeMD="6" SizeLG="5">
                                         <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H5" Class="rz-mb-0">In Stock</RadzenText>
                                         <RadzenText TextStyle="TextStyle.Body2">@(program.Description)</RadzenText>
-                                    </RadzenColumn>
-                                    <RadzenColumn Size="12" SizeMD="6" SizeLG="3" Class="rz-text-align-start rz-text-align-lg-end">
-                                        <RadzenBadge BadgeStyle="BadgeStyle.Secondary" Shade="Shade.Lighter" class="price-badge" Text=@($"{String.Format(new System.Globalization.CultureInfo("en-US"), "{0:C}", program.Id)}") />
                                     </RadzenColumn>
                                 </RadzenRow>
                             </RadzenColumn>

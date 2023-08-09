@@ -38,7 +38,7 @@ namespace ProgramPro.Server.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Trainingprogram>> GetTrainingprogram(int id)
         {
-            var trainingprogram = await _context.Trainingprograms.FindAsync(id);
+            var trainingprogram = await _context.Trainingprograms.Where(x => x.UserId == UserHelper.GetUserId(User)).FirstOrDefaultAsync(x => x.Id == id);
 
             if (trainingprogram == null)
             {

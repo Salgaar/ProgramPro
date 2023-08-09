@@ -7,7 +7,6 @@ namespace ProgramPro.Shared.Models
         [Key]
         public int Id { get; set; }
         public string UserId { get; set; }
-        public ApplicationUser User { get; set; }
         public List<Goal> Goals { get; set; }
         public List<Part> Parts { get; set; }
         public List<Entry> Entries { get; set; }
