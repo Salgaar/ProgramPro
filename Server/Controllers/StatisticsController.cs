@@ -16,9 +16,9 @@ namespace ProgramPro.Server.Controllers
     [ApiController]
     public class StatisticsController : ControllerBase
     {
-        private readonly ProgramProDbContext _context;
+        private readonly ApplicationDbContext _context;
 
-        public StatisticsController(ProgramProDbContext context)
+        public StatisticsController(ApplicationDbContext context)
         {
             _context = context;
         }

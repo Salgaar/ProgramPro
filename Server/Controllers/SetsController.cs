@@ -16,9 +16,9 @@ namespace ProgramPro.Server.Controllers
     [ApiController]
     public class SetsController : ControllerBase
     {
-        private readonly ProgramProDbContext _context;
+        private readonly ApplicationDbContext _context;
 
-        public SetsController(ProgramProDbContext context)
+        public SetsController(ApplicationDbContext context)
         {
             _context = context;
         }

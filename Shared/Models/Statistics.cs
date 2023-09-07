@@ -8,7 +8,7 @@ namespace ProgramPro.Shared.Models
         [Key]
         public int Id { get; set; }
         public string UserId { get; set; }
-        public List<ExerciseStatistics> ExerciseStatistics { get; set; }
-        public List<BodyStatistics> BodyStatistics { get; set; }
+        public ICollection<ExerciseStatistics> ExerciseStatistics { get; set; }
+        public ICollection<BodyStatistics> BodyStatistics { get; set; }
     }
 }

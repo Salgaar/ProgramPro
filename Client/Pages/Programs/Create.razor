@@ -1,4 +1,4 @@
-﻿@page "/Programs/{Id:int}"
+﻿@page "/Programs/Create/{Id:int}"
 @attribute [Authorize]
 @inject HttpClient Http
 @inject DialogService DialogService
@@ -50,15 +50,14 @@
 @code {
     [Parameter] public int Id { get; set; }
     private string name;
-    List<Part> parts = new List<Part>();
-    Trainingprogram program = null;
+    TrainingProgram program = null;
 
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            program = await Http.GetFromJsonAsync<Trainingprogram>($"api/Trainingprograms/{Id}");
+            program = await Http.GetFromJsonAsync<TrainingProgram>($"api/Trainingprograms/{Id}");
             StateHasChanged();
         }
         catch (AccessTokenNotAvailableException exception)

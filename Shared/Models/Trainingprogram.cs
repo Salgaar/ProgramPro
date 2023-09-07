@@ -2,15 +2,15 @@
 
 namespace ProgramPro.Shared.Models
 {
-    public class Trainingprogram
+    public class TrainingProgram
     {
         [Key]
         public int Id { get; set; }
-        public string UserId { get; set; }
-        public List<Goal> Goals { get; set; }
-        public List<Part> Parts { get; set; }
-        public List<Entry> Entries { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
+        public string ApplicationUserId { get; set; }
+        public ApplicationUser ApplicationUser { get; set; }
+        public ICollection<Goal> Goals { get; set; }
+        public ICollection<Day> Days { get; set; }
     }
 }

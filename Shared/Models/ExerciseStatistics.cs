@@ -7,6 +7,6 @@
         public Statistics Statistics { get; set; }
         public int ExerciseId { get; set; }
         public Exercise Exercise { get; set; }
-        public List<PersonalRecord> PersonalRecords { get; set; }
+        public ICollection<PersonalRecord> PersonalRecords { get; set; }
     }
 }

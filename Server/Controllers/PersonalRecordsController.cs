@@ -16,9 +16,9 @@ namespace ProgramPro.Server.Controllers
     [ApiController]
     public class PersonalRecordsController : ControllerBase
     {
-        private readonly ProgramProDbContext _context;
+        private readonly ApplicationDbContext _context;
 
-        public PersonalRecordsController(ProgramProDbContext context)
+        public PersonalRecordsController(ApplicationDbContext context)
         {
             _context = context;
         }

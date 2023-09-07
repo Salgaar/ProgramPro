@@ -16,9 +16,9 @@ namespace ProgramPro.Server.Controllers
     [ApiController]
     public class ExercisesController : ControllerBase
     {
-        private readonly ProgramProDbContext _context;
+        private readonly ApplicationDbContext _context;
 
-        public ExercisesController(ProgramProDbContext context)
+        public ExercisesController(ApplicationDbContext context)
         {
             _context = context;
         }

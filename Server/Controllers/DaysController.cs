@@ -16,9 +16,9 @@ namespace ProgramPro.Server.Controllers
     [ApiController]
     public class DaysController : ControllerBase
     {
-        private readonly ProgramProDbContext _context;
+        private readonly ApplicationDbContext _context;
 
-        public DaysController(ProgramProDbContext context)
+        public DaysController(ApplicationDbContext context)
         {
             _context = context;
         }

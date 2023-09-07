@@ -19,26 +19,26 @@ namespace ProgramPro.Server.Controllers
     [ApiController]
     public class TrainingprogramsController : ControllerBase
     {
-        private readonly ProgramProDbContext _context;
+        private readonly ApplicationDbContext _context;
 
-        public TrainingprogramsController(ProgramProDbContext context)
+        public TrainingprogramsController(ApplicationDbContext context)
         {
             _context = context;
         }
 
         // GET: api/Trainingprograms
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Trainingprogram>>> GetTrainingprograms()
+        public async Task<ActionResult<IEnumerable<TrainingProgram>>> GetTrainingprograms()
         {
-            var programs = await _context.Trainingprograms.Where(x => x.UserId == UserHelper.GetUserId(User)).ToListAsync();
+            var programs = await _context.TrainingPrograms.Where(x => x.ApplicationUserId == UserHelper.GetUserId(User)).ToListAsync();
             return programs;
         }
 
         // GET: api/Trainingprograms/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Trainingprogram>> GetTrainingprogram(int id)
+        public async Task<ActionResult<TrainingProgram>> GetTrainingprogram(int id)
         {
-            var trainingprogram = await _context.Trainingprograms.Where(x => x.UserId == UserHelper.GetUserId(User)).FirstOrDefaultAsync(x => x.Id == id);
+            var trainingprogram = await _context.TrainingPrograms.Where(x => x.ApplicationUserId == UserHelper.GetUserId(User)).FirstOrDefaultAsync(x => x.Id == id);
 
             if (trainingprogram == null)
             {
@@ -51,7 +51,7 @@ namespace ProgramPro.Server.Controllers
         // PUT: api/Trainingprograms/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutTrainingprogram(int id, Trainingprogram trainingprogram)
+        public async Task<IActionResult> PutTrainingprogram(int id, TrainingProgram trainingprogram)
         {
             if (id != trainingprogram.Id)
             {
@@ -82,10 +82,10 @@ namespace ProgramPro.Server.Controllers
         // POST: api/Trainingprograms
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Trainingprogram>> PostTrainingprogram(Trainingprogram trainingprogram)
+        public async Task<ActionResult<TrainingProgram>> PostTrainingprogram(TrainingProgram trainingprogram)
         {
-            trainingprogram.UserId = UserHelper.GetUserId(User);
-            _context.Trainingprograms.Add(trainingprogram);
+            trainingprogram.ApplicationUserId = UserHelper.GetUserId(User);
+            _context.TrainingPrograms.Add(trainingprogram);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetTrainingprogram", new { id = trainingprogram.Id }, trainingprogram);
@@ -95,13 +95,13 @@ namespace ProgramPro.Server.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTrainingprogram(int id)
         {
-            var trainingprogram = await _context.Trainingprograms.FindAsync(id);
+            var trainingprogram = await _context.TrainingPrograms.FindAsync(id);
             if (trainingprogram == null)
             {
                 return NotFound();
             }
 
-            _context.Trainingprograms.Remove(trainingprogram);
+            _context.TrainingPrograms.Remove(trainingprogram);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -109,7 +109,7 @@ namespace ProgramPro.Server.Controllers
 
         private bool TrainingprogramExists(int id)
         {
-            return _context.Trainingprograms.Any(e => e.Id == id);
+            return _context.TrainingPrograms.Any(e => e.Id == id);
         }
     }
 }

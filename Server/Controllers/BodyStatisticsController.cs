@@ -16,9 +16,9 @@ namespace ProgramPro.Server.Controllers
     [ApiController]
     public class BodyStatisticsController : ControllerBase
     {
-        private readonly ProgramProDbContext _context;
+        private readonly ApplicationDbContext _context;
 
-        public BodyStatisticsController(ProgramProDbContext context)
+        public BodyStatisticsController(ApplicationDbContext context)
         {
             _context = context;
         }

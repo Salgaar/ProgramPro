@@ -18,7 +18,7 @@
      <RadzenColumn>
         <RadzenDataList AllowVirtualization=@allowVirtualization Style="@(allowVirtualization ? "height:400px;overflow:auto;" : "")"
                         WrapItems="@(!allowVirtualization)" AllowPaging="@(!allowVirtualization)"
-                        Data="@programs" TItem="Trainingprogram" PageSize="5" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true">
+                        Data="@programs" TItem="TrainingProgram" PageSize="5" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true">
             <Template Context="program">
                 <RadzenCard Style="width: 100%; padding: 0;">
                     <RadzenRow Gap="0">
@@ -67,13 +67,13 @@
 
     @code {
     bool allowVirtualization = false;
-    private List<Trainingprogram> programs = new List<Trainingprogram>();
+    private List<TrainingProgram> programs = new List<TrainingProgram>();
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            programs = await Http.GetFromJsonAsync<List<Trainingprogram>>("api/Trainingprograms");
+            programs = await Http.GetFromJsonAsync<List<TrainingProgram>>("api/Trainingprograms");
             StateHasChanged();
         }
         catch (AccessTokenNotAvailableException exception)
@@ -84,11 +84,11 @@
 
     private async Task MakeNewProgram()
     {
-        var result = await Http.PostAsJsonAsync("api/Trainingprograms", new Trainingprogram { Name = "New Program" });
+        var result = await Http.PostAsJsonAsync("api/Trainingprograms", new TrainingProgram { Name = "New Program" });
         if (result.IsSuccessStatusCode)
         {
-            var program = await result.Content.ReadFromJsonAsync<Trainingprogram>();
-            Nav.NavigateTo($"/Programs/{program.Id}");
+            var program = await result.Content.ReadFromJsonAsync<TrainingProgram>();
+            Nav.NavigateTo($"/Programs/Create/{program.Id}");
         }
         else
         {

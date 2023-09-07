@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using ProgramPro.Server.Data;
@@ -7,21 +8,19 @@ using ProgramPro.Shared.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-var identityConnectionstring = builder.Configuration.GetConnectionString("IdentityDb") ?? throw new InvalidOperationException("Connection string 'IdentityDb' not found.");
-var programProConnectionstring = builder.Configuration.GetConnectionString("ProgramProDb") ?? throw new InvalidOperationException("Connection string 'ProgramProDb' not found.");
+var programProConnectionstring = builder.Configuration.GetConnectionString("DbContext") ?? throw new InvalidOperationException("Connection string 'ProgramProDb' not found.");
 
-builder.Services.AddDbContext<IdentityContext>(options =>
-    options.UseSqlServer(identityConnectionstring));
-builder.Services.AddDbContext<ProgramProDbContext>(options =>
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(programProConnectionstring));
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
-    .AddEntityFrameworkStores<IdentityContext>();
+    .AddRoles<IdentityRole>()
+    .AddEntityFrameworkStores<ApplicationDbContext>();
 
 builder.Services.AddIdentityServer()
-    .AddApiAuthorization<ApplicationUser, IdentityContext>();
+    .AddApiAuthorization<ApplicationUser, ApplicationDbContext>();
 
 builder.Services.AddAuthentication()
     .AddIdentityServerJwt();
@@ -54,9 +53,16 @@ app.UseRouting();
 app.UseIdentityServer();
 app.UseAuthorization();
 
-
 app.MapRazorPages();
 app.MapControllers();
 app.MapFallbackToFile("index.html");
+
+using(var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    context.SeedData(userManager, roleManager);
+}
 
 app.Run();

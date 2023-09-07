@@ -3,11 +3,9 @@
     public class Set
     {
         public int Id { get; set; }
-        public int DayId { get; set; }
-        public Day Day { get; set; }
-        public int ExerciseId { get; set; }
-        public Exercise Exercise { get; set; }
-        public List<Entry> Entries { get; set; }
+        public int WorkoutExerciseId { get; set; }
+        public WorkoutExercise WorkoutExercise { get; set; }
+        public ICollection<Entry> Entries { get; set; }
         public double Weight { get; set; }
         public int Reps { get; set; }
         public double RPE { get; set; }

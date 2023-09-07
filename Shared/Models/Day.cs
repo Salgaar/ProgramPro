@@ -3,9 +3,9 @@
     public class Day
     {
         public int Id { get; set; }
-        public int PartDefinitionId { get; set; }
-        public PartDefinition PartDefinition { get; set; }
-        public List<Set> Set { get; set; }
-        public int DayNumber { get; set; }
+        public int TrainingprogramId { get; set; }
+        public TrainingProgram Trainingprogram { get; set; }
+        public ICollection<WorkoutExercise> WorkoutExercises { get; set; }
+        public DateTime Date { get; set; }
     }
 }

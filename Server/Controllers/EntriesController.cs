@@ -16,9 +16,9 @@ namespace ProgramPro.Server.Controllers
     [ApiController]
     public class EntriesController : ControllerBase
     {
-        private readonly ProgramProDbContext _context;
+        private readonly ApplicationDbContext _context;
 
-        public EntriesController(ProgramProDbContext context)
+        public EntriesController(ApplicationDbContext context)
         {
             _context = context;
         }
