@@ -11,7 +11,6 @@ using ProgramPro.Shared.Models;
 
 namespace ProgramPro.Server.Controllers
 {
-    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class ExerciseStatisticsController : ControllerBase

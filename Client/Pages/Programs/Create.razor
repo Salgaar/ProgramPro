@@ -1,55 +1,38 @@
 ﻿@page "/Programs/Create/{Id:int}"
-@attribute [Authorize]
 @inject HttpClient Http
 @inject DialogService DialogService
 
-<RadzenRow>
-    <RadzenColumn>
-        <RadzenRow>
-            <RadzenColumn>
-                <RadzenCard>
-                    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Name</RadzenText>
-                    <RadzenTextBox Value="@program.Name" @oninput=@(args => NameInputChange(args.Value.ToString())) class="w-100" />
-                </RadzenCard>
-            </RadzenColumn>
-        </RadzenRow>
-        <RadzenRow>
-            <RadzenColumn>
-                <RadzenCard>
-                    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Description</RadzenText>
-                    <RadzenTextArea class="w-100" />
-                </RadzenCard>
-            </RadzenColumn>
-        </RadzenRow>
-    </RadzenColumn>
-
-</RadzenRow>
-
-
-@*<RadzenColumn>
+@if(program == null)
+{
+    <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Primary" Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+}
+else
+{
     <RadzenRow>
         <RadzenColumn>
-            <RadzenButton Click=@(async (args) => await OpenAddPart()) Text="Add New" Icon="add_circle_outline" ButtonStyle="ButtonStyle.Primary" />
+            <RadzenRow>
+                <RadzenColumn>
+                    <RadzenCard>
+                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Name</RadzenText>
+                        <RadzenTextBox Value="@program.Name" class="w-100" />
+                    </RadzenCard>
+                </RadzenColumn>
+            </RadzenRow>
+            <RadzenRow>
+                <RadzenColumn>
+                    <RadzenCard>
+                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Description</RadzenText>
+                        <RadzenTextArea class="w-100" />
+                    </RadzenCard>
+                </RadzenColumn>
+            </RadzenRow>
         </RadzenColumn>
     </RadzenRow>
-    <RadzenRow>
-        <RadzenColumn>
-            <RadzenDataGrid AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="false" FilterMode="FilterMode.Advanced" AllowSorting="true" PageSize="5" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
-                            Data="@parts" TItem="Part" ColumnWidth="300px" LogicalFilterOperator="LogicalFilterOperator.Or">
-                <Columns>
-                    <RadzenDataGridColumn TItem="Part" Property="Name" Filterable="false" Title="Name" Frozen="true" Width="80px" TextAlign="TextAlign.Center" />
-                    <RadzenDataGridColumn TItem="Part" Property="Description" Title="Description" Width="160px" />
-                    <RadzenDataGridColumn TItem="Part" Property="AmountOfDays" Title="Amount Of Days" Width="160px" />
-                    <RadzenDataGridColumn TItem="Part" Property="StartDate" Title="Start Date" FormatString="{0:d}" Width="160px" />
-                </Columns>
-            </RadzenDataGrid>
-        </RadzenColumn>
-    </RadzenRow>
-</RadzenColumn>*@
+}
+
 
 @code {
     [Parameter] public int Id { get; set; }
-    private string name;
     TrainingProgram program = null;
 
 
@@ -64,17 +47,5 @@
         {
             exception.Redirect();
         }
-    }
-
-    //private async Task OpenAddPart()
-    //{
-    //    await DialogService.OpenAsync<AddPart>($"Add Part",
-    //        new Dictionary<string, object>() { /*{ "OrderID", orderID }*/ },
-    //        new DialogOptions() { Width = "700px", Height = "512px", Resizable = true, Draggable = true });
-    //}
-
-    private void NameInputChange(string name)
-    {
-        this.name = name;
     }
 }
