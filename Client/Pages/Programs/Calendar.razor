@@ -1,0 +1,165 @@
+﻿@inject NavigationManager NavManager 
+
+
+<RadzenRow>
+    <RadzenColumn>
+        <RadzenText Text="Cycle Number" />
+        <RadzenNumeric @bind-Value="@DaysInACycle" />
+    </RadzenColumn>
+    <RadzenColumn>
+        <RadzenText Text="Week Number" />
+        <RadzenNumeric @bind-Value="@CycleAmount" />
+    </RadzenColumn>
+    <RadzenColumn>
+        <RadzenText Text="Start Date" />
+        <RadzenDatePicker @bind-Value="@StartDate" />
+    </RadzenColumn>
+</RadzenRow>
+
+<div class="calendar">
+    @for (int cycle = 1; cycle <= CycleAmount; cycle++)
+    {
+        <div class="week">
+            <div class="week-number">
+                Cycle @cycle
+            </div>
+            <div class="days">
+                @for (int day = 1; day <= DaysInACycle; day++)
+                {
+                    int dayNumber = (cycle - 1) * DaysInACycle + day;
+                    var realDay = StartDate.AddDays(dayNumber - 1);
+                    <div class="day" @onclick="() => ShowPopup(dayNumber)">
+                        <div class="day-number">
+                            @realDay.Day : @realDay.DayOfWeek
+                        </div>
+                        @GetDayText(dayNumber)
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@if (showPopup)
+{
+    <div class="popup">
+        <textarea @bind="popupText"></textarea>
+        <button @onclick="SaveText">Gem</button>
+        <button @onclick="ClosePopup">Annuller</button>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int ProgramId { get; set; }
+    public int DaysInACycle = 7;
+    public int CycleAmount = 1;
+    public DateTime StartDate = DateTime.Now;
+
+    private List<string> dayTexts = new List<string>();
+    private bool showPopup = false;
+    private int currentDay;
+    private string popupText = "";
+
+    private string GetDayText(int day)
+    {
+        if (day <= dayTexts.Count)
+        {
+            return dayTexts[day - 1];
+        }
+        return "";
+    }
+
+    private void AddDay()
+    {
+        NavManager.NavigateTo($"/Days/Create/{ProgramId}/");
+    }
+
+    private void ShowPopup(int day)
+    {
+        currentDay = day;
+        popupText = GetDayText(day); // Load existing text
+        showPopup = true;
+    }
+
+    private void SaveText()
+    {
+        if (currentDay > dayTexts.Count)
+        {
+            while (currentDay > dayTexts.Count)
+            {
+                dayTexts.Add("");
+            }
+        }
+
+        dayTexts[currentDay - 1] = popupText;
+        ClosePopup();
+    }
+
+    private void ClosePopup()
+    {
+        showPopup = false;
+        popupText = "";
+    }
+}
+
+<style>
+    .calendar {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .week {
+        display: flex;
+        flex-direction: row; /* Display days horizontally within a week */
+        align-items: center;
+        margin-bottom: 10px; /* Separate weeks */
+    }
+
+    .week-number {
+        font-weight: bold;
+        width: 10%; /* Fixed width for week numbers */
+        text-align: center;
+    }
+
+    .days {
+        display: flex;
+        flex-grow: 1; /* Days fill the remaining space */
+        justify-content: space-between; /* Fill the entire width */
+    }
+
+    .day {
+        width: calc(100% / 7); /* Equal width for each day */
+        border: 1px solid #ccc;
+        padding: 5px;
+        cursor: pointer;
+        height: 200px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+    }
+
+    .day-number {
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .popup {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        padding: 20px;
+        border: 1px solid #ccc;
+        z-index: 9999;
+    }
+
+        .popup textarea {
+            width: 100%;
+            height: 100px;
+            margin-bottom: 10px;
+        }
+</style>

@@ -2,24 +2,32 @@
 @inject HttpClient Http
 @inject DialogService DialogService
 
-@if(program == null)
-{
-    <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Primary" Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
-}
-else
+@if (program == null)
 {
     <RadzenRow>
         <RadzenColumn>
+
+            <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Primary" Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+        </RadzenColumn>
+    </RadzenRow>
+}
+else
+{
+    <RadzenRow RowGap="2rem">
+        <RadzenColumn>
+            <RadzenText TextAlign="TextAlign.Center" TextStyle="TextStyle.H2">Edit Training Program</RadzenText>
+        </RadzenColumn>
+    </RadzenRow>
+    <RadzenRow RowGap="2rem">
+        <RadzenColumn>
             <RadzenRow>
-                <RadzenColumn>
+                <RadzenColumn Size="6">
                     <RadzenCard>
                         <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Name</RadzenText>
                         <RadzenTextBox Value="@program.Name" class="w-100" />
                     </RadzenCard>
                 </RadzenColumn>
-            </RadzenRow>
-            <RadzenRow>
-                <RadzenColumn>
+                <RadzenColumn Size="6">
                     <RadzenCard>
                         <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Description</RadzenText>
                         <RadzenTextArea class="w-100" />
@@ -28,13 +36,15 @@ else
             </RadzenRow>
         </RadzenColumn>
     </RadzenRow>
+<RadzenRow>
+        <Calendar ProgramId="@Id" />
+</RadzenRow>
 }
 
 
 @code {
     [Parameter] public int Id { get; set; }
     TrainingProgram program = null;
-
 
     protected override async Task OnInitializedAsync()
     {

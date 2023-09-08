@@ -29,7 +29,7 @@ namespace ProgramPro.Server.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TrainingProgram>>> GetTrainingprograms()
         {
-            var programs = await _context.TrainingPrograms.Where(x => x.ApplicationUserId == UserHelper.GetUserId(User)).ToListAsync();
+            var programs = await _context.TrainingPrograms/*.Where(x => x.ApplicationUserId == UserHelper.GetUserId(User))*/.ToListAsync();
             return programs;
         }
 
@@ -37,7 +37,7 @@ namespace ProgramPro.Server.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<TrainingProgram>> GetTrainingprogram(int id)
         {
-            var trainingprogram = await _context.TrainingPrograms.Where(x => x.ApplicationUserId == UserHelper.GetUserId(User)).FirstOrDefaultAsync(x => x.Id == id);
+            var trainingprogram = await _context.TrainingPrograms/*.Where(x => x.ApplicationUserId == UserHelper.GetUserId(User))*/.FirstOrDefaultAsync(x => x.Id == id);
 
             if (trainingprogram == null)
             {
@@ -83,7 +83,7 @@ namespace ProgramPro.Server.Controllers
         [HttpPost]
         public async Task<ActionResult<TrainingProgram>> PostTrainingprogram(TrainingProgram trainingprogram)
         {
-            trainingprogram.ApplicationUserId = UserHelper.GetUserId(User);
+            //trainingprogram.ApplicationUserId = UserHelper.GetUserId(User);
             _context.TrainingPrograms.Add(trainingprogram);
             await _context.SaveChangesAsync();
 
