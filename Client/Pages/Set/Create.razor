@@ -1,0 +1,51 @@
+﻿@inject DialogService DialogService
+
+<RadzenCard>
+    <RadzenRow>
+        <RadzenColumn>
+            <RadzenNumeric @bind-Value="@set.Weight" />
+        </RadzenColumn>
+    </RadzenRow>
+    <RadzenRow>
+        <RadzenColumn>
+            <RadzenNumeric @bind-Value="@set.Reps" />
+        </RadzenColumn>
+    </RadzenRow>
+    <RadzenRow>
+        <RadzenColumn>
+            <RadzenNumeric @bind-Value="@set.RPE" />
+        </RadzenColumn>
+    </RadzenRow>
+    <RadzenRow>
+        <RadzenColumn>
+            <RadzenNumeric @bind-Value="@set.RIR" />
+        </RadzenColumn>
+    </RadzenRow>
+    <RadzenRow>
+        <RadzenColumn>
+            <RadzenNumeric @bind-Value="@set.PercentageOfOneRepMax" />
+        </RadzenColumn>
+    </RadzenRow>
+    <RadzenRow>
+        <RadzenColumn>
+            <RadzenSelectBar @bind-Value="@set.Type">
+                <RadzenSelectBarItem Value="@SetType.Top">@SetType.Top.ToString()</RadzenSelectBarItem>
+                <RadzenSelectBarItem Value="@SetType.Heavy">@SetType.Heavy.ToString()</RadzenSelectBarItem>
+                <RadzenSelectBarItem Value="@SetType.Backoff">@SetType.Backoff.ToString()</RadzenSelectBarItem>
+            </RadzenSelectBar>
+        </RadzenColumn>
+    </RadzenRow>
+    <RadzenRow>
+        <RadzenButton @onclick="async() => await Save()">Create</RadzenButton>
+    </RadzenRow>
+</RadzenCard>
+
+
+@code {
+    private Set set = new Set();
+
+    private async Task Save()
+    {
+        DialogService.Close(set);
+    }
+}

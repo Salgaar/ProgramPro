@@ -2,8 +2,9 @@
 
 @inject NavigationManager NavManager
 @inject HttpClient Http
+@inject NotificationService NotificationService
 
-<h3>Day Details</h3>
+<h3>Edit Day</h3>
 
 @if (day != null)
 {
@@ -11,15 +12,15 @@
     <p>Training Program Id: @day.TrainingprogramId</p>
 
     <h4>Workout Exercises</h4>
+    <RadzenButton Click="() => AddWorkoutExercise()">Add Workout Exercise</RadzenButton>
     <ul>
-        @if(day.WorkoutExercises != null)
+        @if (day.WorkoutExercises != null)
         {
             @foreach (var exercise in day.WorkoutExercises)
             {
                 <li>
                     <p>Exercise Id: @exercise.ExerciseId</p>
                     <!-- Add more exercise details here -->
-                    <button class="btn btn-primary" @onclick="AddWorkoutExercise">Add Workout Exercise</button>
                 </li>
             }
         }
@@ -51,9 +52,8 @@ else
         }
     }
 
-    private void AddWorkoutExercise()
+    private async Task AddWorkoutExercise()
     {
-        // Redirect to WorkoutExercises/Create with DayId as a parameter
         NavManager.NavigateTo($"/WorkoutExercises/Create/{Id}");
     }
 }
