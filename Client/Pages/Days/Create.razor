@@ -1,6 +1,59 @@
-﻿@page "/Days/Create/{ProgramId:int}"
+﻿@page "/Days/Create/{Id:int}"
+
+@inject NavigationManager NavManager
+@inject HttpClient Http
+
+<h3>Day Details</h3>
+
+@if (day != null)
+{
+    <p>Date: @day.Date.ToShortDateString()</p>
+    <p>Training Program Id: @day.TrainingprogramId</p>
+
+    <h4>Workout Exercises</h4>
+    <ul>
+        @if(day.WorkoutExercises != null)
+        {
+            @foreach (var exercise in day.WorkoutExercises)
+            {
+                <li>
+                    <p>Exercise Id: @exercise.ExerciseId</p>
+                    <!-- Add more exercise details here -->
+                    <button class="btn btn-primary" @onclick="AddWorkoutExercise">Add Workout Exercise</button>
+                </li>
+            }
+        }
+
+    </ul>
+}
+else
+{
+    <p>Day not found.</p>
+}
 
 @code {
-    [Parameter] 
-    public int ProgramId { get; set; }
+    private Day day;
+
+    [Parameter]
+    public int Id { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            day = await Http.GetFromJsonAsync<Day>($"api/Days/{Id}");
+            StateHasChanged();
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+
+    private void AddWorkoutExercise()
+    {
+        // Redirect to WorkoutExercises/Create with DayId as a parameter
+        NavManager.NavigateTo($"/WorkoutExercises/Create/{Id}");
+    }
 }

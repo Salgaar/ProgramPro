@@ -1,5 +1,6 @@
 ﻿@inject NavigationManager NavManager 
-
+@inject HttpClient Http
+@inject NotificationService NotificationService
 
 <RadzenRow>
     <RadzenColumn>
@@ -28,11 +29,17 @@
                 {
                     int dayNumber = (cycle - 1) * DaysInACycle + day;
                     var realDay = StartDate.AddDays(dayNumber - 1);
-                    <div class="day" @onclick="() => ShowPopup(dayNumber)">
+                    <div class="day" @onclick="() => AddDay(realDay)">
                         <div class="day-number">
                             @realDay.Day : @realDay.DayOfWeek
                         </div>
-                        @GetDayText(dayNumber)
+                        @foreach (var item in days)
+                        {
+                            if(item.Date == realDay)
+                            {
+                                @item.Id
+                            }
+                        }
                     </div>
                 }
             </div>
@@ -55,11 +62,26 @@
     public int DaysInACycle = 7;
     public int CycleAmount = 1;
     public DateTime StartDate = DateTime.Now;
+    private List<Day> days = new List<Day>();
+
 
     private List<string> dayTexts = new List<string>();
     private bool showPopup = false;
     private int currentDay;
     private string popupText = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            days = await Http.GetFromJsonAsync<List<Day>>($"api/Days?trainingProgramId={ProgramId}");
+            StateHasChanged();
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
 
     private string GetDayText(int day)
     {
@@ -70,9 +92,18 @@
         return "";
     }
 
-    private void AddDay()
+    private async Task AddDay(DateTime date)
     {
-        NavManager.NavigateTo($"/Days/Create/{ProgramId}/");
+        var result = await Http.PostAsJsonAsync("api/Days", new Day { Date = date, TrainingprogramId = ProgramId });
+        if (result.IsSuccessStatusCode)
+        {
+            var day = await result.Content.ReadFromJsonAsync<Day>();
+            NavManager.NavigateTo($"/Days/Create/{day.Id}");
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = result.ReasonPhrase, Duration = 20000 });
+        }
     }
 
     private void ShowPopup(int day)

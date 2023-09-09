@@ -24,16 +24,16 @@ namespace ProgramPro.Server.Controllers
 
         // GET: api/Days
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Day>>> GetDays()
+        public async Task<ActionResult<IEnumerable<Day>>> GetDays(int trainingProgramId)
         {
-            return await _context.Days.ToListAsync();
+            return await _context.Days.Where(x => x.TrainingprogramId == trainingProgramId).ToListAsync();
         }
 
         // GET: api/Days/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Day>> GetDay(int id)
         {
-            var day = await _context.Days.FindAsync(id);
+            var day = await _context.Days.Include(x => x.WorkoutExercises).FirstOrDefaultAsync(x => x.Id == id);
 
             if (day == null)
             {
@@ -79,8 +79,11 @@ namespace ProgramPro.Server.Controllers
         [HttpPost]
         public async Task<ActionResult<Day>> PostDay(Day day)
         {
-            _context.Days.Add(day);
-            await _context.SaveChangesAsync();
+            if (ModelState.IsValid)
+            {
+                _context.Days.Add(day);
+                await _context.SaveChangesAsync();
+            }
 
             return CreatedAtAction("GetDay", new { id = day.Id }, day);
         }
