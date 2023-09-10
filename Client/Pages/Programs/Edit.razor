@@ -1,6 +1,13 @@
-﻿@page "/Programs/Create/{Id:int}"
+﻿@page "/Programs/Edit/{Id:int}"
 @inject HttpClient Http
 @inject DialogService DialogService
+
+<div class="rz-m-12">
+    <RadzenBreadCrumb>
+        <RadzenBreadCrumbItem Path="/Programs" Text="Programs" />
+        <RadzenBreadCrumbItem Style="color:darkseagreen" Text="Edit" />
+    </RadzenBreadCrumb>
+</div>
 
 @if (program == null)
 {
@@ -37,7 +44,7 @@ else
         </RadzenColumn>
     </RadzenRow>
 <RadzenRow>
-        <Calendar ProgramId="@Id" />
+        <Calendar Days="program.Days.ToList()" ProgramId="@Id" />
 </RadzenRow>
 }
 

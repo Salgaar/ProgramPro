@@ -41,7 +41,7 @@
                                 </RadzenRow>
                             </RadzenColumn>
                             <RadzenColumn Size="12" SizeLG="2" Class="rz-p-4">
-                                <RadzenButton Text="Order now" Style="width: 100%" />
+                                <RadzenButton Click="() => EditProgram(program.Id)" Text="Edit" Style="width: 100%" />
                             </RadzenColumn>
                         </RadzenRow>
                     </RadzenCard>
@@ -81,13 +81,18 @@
         }
     }
 
+    private void EditProgram(int id)
+    {
+        Nav.NavigateTo($"/Programs/Edit/{id}");
+    }
+
     private async Task MakeNewProgram()
     {
         var result = await Http.PostAsJsonAsync("api/Trainingprograms", new TrainingProgram { Name = "New Program" });
         if (result.IsSuccessStatusCode)
         {
             var program = await result.Content.ReadFromJsonAsync<TrainingProgram>();
-            Nav.NavigateTo($"/Programs/Create/{program.Id}");
+            Nav.NavigateTo($"/Programs/Edit/{program.Id}");
         }
         else
         {

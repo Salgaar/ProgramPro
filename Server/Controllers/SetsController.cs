@@ -85,13 +85,22 @@ namespace ProgramPro.Server.Controllers
             return CreatedAtAction("GetSet", new { id = @set.Id }, @set);
         }
 
-        [HttpPost]
+        [HttpPost("PostSets")]
         public async Task<ActionResult<IEnumerable<Set>>> PostSets(List<Set> sets)
+        
         {
-            _context.Set.AddRange(sets);
-            await _context.SaveChangesAsync();
+            if (ModelState.IsValid)
+            {
+                _context.Set.AddRange(sets);
+                await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetSet", sets);
+                return CreatedAtAction("GetSet", sets);
+            }
+            else
+            {
+                return BadRequest(ModelState);
+            }
+
         }
 
         // DELETE: api/Sets/5

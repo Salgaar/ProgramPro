@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using ProgramPro.Server.Data;
 using ProgramPro.Shared.Models;
 
@@ -31,16 +32,19 @@ namespace ProgramPro.Server.Controllers
 
         // GET: api/Days/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Day>> GetDay(int id)
+        public async Task<ActionResult<string>> GetDay(int id)
         {
-            var day = await _context.Days.Include(x => x.WorkoutExercises).FirstOrDefaultAsync(x => x.Id == id);
+            var day = await _context.Days
+                .Include(x => x.WorkoutExercises).ThenInclude(x => x.Sets)
+                .Include(x => x.WorkoutExercises).ThenInclude(x => x.Exercise)
+                .FirstOrDefaultAsync(x => x.Id == id);
 
             if (day == null)
             {
                 return NotFound();
             }
 
-            return day;
+            return JsonConvert.SerializeObject(day, Extensions.JsonOptions.jsonSettings);
         }
 
         // PUT: api/Days/5
@@ -83,9 +87,15 @@ namespace ProgramPro.Server.Controllers
             {
                 _context.Days.Add(day);
                 await _context.SaveChangesAsync();
+
+                return CreatedAtAction("GetDay", new { id = day.Id }, day);
+            }
+            else
+            {
+                return BadRequest(ModelState);
             }
 
-            return CreatedAtAction("GetDay", new { id = day.Id }, day);
+
         }
 
         // DELETE: api/Days/5

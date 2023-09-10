@@ -78,10 +78,17 @@ namespace ProgramPro.Server.Controllers
         [HttpPost]
         public async Task<ActionResult<WorkoutExercise>> PostWorkoutExercise(WorkoutExercise workoutExercise)
         {
-            _context.WorkoutExercises.Add(workoutExercise);
-            await _context.SaveChangesAsync();
+            if (ModelState.IsValid)
+            {
+                _context.WorkoutExercises.Add(workoutExercise);
+                await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetWorkoutExercise", new { id = workoutExercise.Id }, workoutExercise);
+                return CreatedAtAction("GetWorkoutExercise", new { id = workoutExercise.Id }, workoutExercise);
+            }
+            else
+            {
+                return BadRequest(ModelState);
+            }
         }
 
         // DELETE: api/WorkoutExercises/5

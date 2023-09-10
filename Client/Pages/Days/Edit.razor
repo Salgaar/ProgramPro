@@ -1,8 +1,17 @@
-﻿@page "/Days/Create/{Id:int}"
+﻿@page "/Days/Edit/{Id:int}"
 
 @inject NavigationManager NavManager
 @inject HttpClient Http
 @inject NotificationService NotificationService
+
+
+<div class="rz-m-12">
+    <RadzenBreadCrumb>
+        <RadzenBreadCrumbItem Text="Programs" />
+        <RadzenBreadCrumbItem Path="@programCrumb" Text="Edit Program" />
+        <RadzenBreadCrumbItem Style="color:darkseagreen" Text="Edit Day" />
+    </RadzenBreadCrumb>
+</div>
 
 <h3>Edit Day</h3>
 
@@ -33,17 +42,17 @@ else
 }
 
 @code {
-    private Day day;
-
     [Parameter]
     public int Id { get; set; }
-
+    public Day day = null;
+    string programCrumb = "";
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
             day = await Http.GetFromJsonAsync<Day>($"api/Days/{Id}");
+            programCrumb = $"/Programs/Edit/{day.TrainingprogramId}";
             StateHasChanged();
         }
         catch (AccessTokenNotAvailableException exception)

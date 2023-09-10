@@ -4,6 +4,15 @@
 @inject NavigationManager NavManager
 @inject NotificationService NotificationService
 
+<div class="rz-m-12">
+    <RadzenBreadCrumb>
+        <RadzenBreadCrumbItem Text="Programs" />
+        <RadzenBreadCrumbItem Text="Edit Program" />
+        <RadzenBreadCrumbItem Path="@dayCrumb" Text="Edit Day" />
+        <RadzenBreadCrumbItem Style="color:darkseagreen" Text="Create WorkoutExercise" />
+    </RadzenBreadCrumb>
+</div>
+
 <h4>Edit Workout Exercise</h4>
 
 
@@ -17,7 +26,7 @@
     </RadzenRow>
     <RadzenRow>
         <RadzenColumn>
-            <RadzenDropDown @bind-Value="workoutExercise.Exercise" Data="@exercises" />
+            <RadzenDropDown TValue="int" @bind-Value="workoutExercise.ExerciseId" Data="@exercises" TextProperty="Name" ValueProperty="Id" />
         </RadzenColumn>
     </RadzenRow>
 
@@ -50,18 +59,17 @@ else
     private WorkoutExercise workoutExercise = new WorkoutExercise();
     private bool showPopup = false;
     private List<Set> sets = new List<Set>();
-    private List<Exercise> exercises = new List<Exercise>
-    {
-        new Exercise{ Description = "test", Id = 1, Name = "test"},
-        new Exercise{ Description = "test2", Id = 2, Name = "test2"},
-        new Exercise{ Description = "test3", Id = 3, Name = "test3"},
-    };
+    private List<Exercise> exercises = new List<Exercise>();
+
+    string dayCrumb = "";
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-
+            dayCrumb = $"/Days/Edit/{DayId}";
+            exercises = await Http.GetFromJsonAsync<List<Exercise>>($"api/Exercises");
+            StateHasChanged();
         }
         catch (AccessTokenNotAvailableException exception)
         {
@@ -74,8 +82,8 @@ else
         var set = await DialogService.OpenAsync<ProgramPro.Client.Pages.Set.Create>($"Add Set",
             new Dictionary<string, object>() { /* { "WorkoutExerciseId", Id } */ },
             new DialogOptions() { Width = "700px", Height = "512px", Resizable = true, Draggable = true });
-        if(set != null)
-        {
+        if((Set)set != default)
+        {   
             sets.Add((Set)set);
             StateHasChanged();
         }
@@ -97,16 +105,16 @@ else
                 var result2 = await Http.PostAsJsonAsync("/api/Sets/PostSets", sets);
                 if (result2.IsSuccessStatusCode)
                 {
-                    NavManager.NavigateTo($"/Days/Create/{DayId}");
+                    NavManager.NavigateTo($"/Days/Edit/{DayId}");
                 }
                 else
                 {
-                    NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = result.ReasonPhrase, Duration = 20000 });
+                    NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = result2.ReasonPhrase, Duration = 20000 });
                 }
             }
             else
             {
-                NavManager.NavigateTo($"/Days/Create/{DayId}");
+                NavManager.NavigateTo($"/Days/Edit/{DayId}");
             }
         }
         else

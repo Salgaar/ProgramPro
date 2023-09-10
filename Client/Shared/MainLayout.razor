@@ -1,29 +1,15 @@
 ﻿@inherits LayoutComponentBase
 
-@*<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
-
-    <main>
-        <div class="top-row px-4 auth">
-            <LoginDisplay />
-            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
-        </div>
-
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>*@
-<RadzenDialog />
-
+<RadzenDialog/>
+<RadzenNotification/>
+<RadzenContextMenu/>
+<RadzenTooltip/>
 
 <RadzenLayout Style="height: 100vh; grid-template-columns: 1fr auto; grid-template-areas: 'rz-header rz-header' 'rz-body rz-sidebar'">
     <RadzenHeader>
         <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" AlignItems="AlignItems.Center" Gap="1rem">
+@*---------- Authentication and Authorization ----------*@
             <LoginDisplay />
-            @*<RadzenSidebarToggle Click="@(() => sidebar4Expanded = !sidebar4Expanded)" Class="rz-m-0" />*@
         </RadzenStack>
     </RadzenHeader>
     <RadzenSidebar >
@@ -36,11 +22,8 @@
     <RadzenBody >
         @Body
     </RadzenBody>
-
 </RadzenLayout>
 
 @code {
     bool sidebarExpanded = true;
-
-
 }

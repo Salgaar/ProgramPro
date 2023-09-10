@@ -33,9 +33,9 @@
                         <div class="day-number">
                             @realDay.Day : @realDay.DayOfWeek
                         </div>
-                        @foreach (var item in days)
+                        @foreach (var item in Days)
                         {
-                            if(item.Date == realDay)
+                            if (item.Date.ToShortDateString() == realDay.ToShortDateString())
                             {
                                 @item.Id
                             }
@@ -47,35 +47,20 @@
     }
 </div>
 
-@if (showPopup)
-{
-    <div class="popup">
-        <textarea @bind="popupText"></textarea>
-        <button @onclick="SaveText">Gem</button>
-        <button @onclick="ClosePopup">Annuller</button>
-    </div>
-}
-
 @code {
     [Parameter]
     public int ProgramId { get; set; }
+    [Parameter]
+    public List<Day> Days { get; set; }
     public int DaysInACycle = 7;
     public int CycleAmount = 1;
     public DateTime StartDate = DateTime.Now;
-    private List<Day> days = new List<Day>();
-
-
-    private List<string> dayTexts = new List<string>();
-    private bool showPopup = false;
-    private int currentDay;
-    private string popupText = "";
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            days = await Http.GetFromJsonAsync<List<Day>>($"api/Days?trainingProgramId={ProgramId}");
-            StateHasChanged();
+
         }
         catch (AccessTokenNotAvailableException exception)
         {
@@ -83,54 +68,31 @@
         }
     }
 
-    private string GetDayText(int day)
-    {
-        if (day <= dayTexts.Count)
-        {
-            return dayTexts[day - 1];
-        }
-        return "";
-    }
-
     private async Task AddDay(DateTime date)
     {
-        var result = await Http.PostAsJsonAsync("api/Days", new Day { Date = date, TrainingprogramId = ProgramId });
-        if (result.IsSuccessStatusCode)
+        bool createNew = true;
+        foreach(var item in Days)
         {
-            var day = await result.Content.ReadFromJsonAsync<Day>();
-            NavManager.NavigateTo($"/Days/Create/{day.Id}");
-        }
-        else
-        {
-            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = result.ReasonPhrase, Duration = 20000 });
-        }
-    }
-
-    private void ShowPopup(int day)
-    {
-        currentDay = day;
-        popupText = GetDayText(day); // Load existing text
-        showPopup = true;
-    }
-
-    private void SaveText()
-    {
-        if (currentDay > dayTexts.Count)
-        {
-            while (currentDay > dayTexts.Count)
+            if(item.Date.ToShortDateString() == date.ToShortDateString())
             {
-                dayTexts.Add("");
+                createNew = false;
+                NavManager.NavigateTo($"/Days/Edit/{item.Id}");
+                break;
             }
         }
-
-        dayTexts[currentDay - 1] = popupText;
-        ClosePopup();
-    }
-
-    private void ClosePopup()
-    {
-        showPopup = false;
-        popupText = "";
+        if(createNew == true)
+        {
+            var result = await Http.PostAsJsonAsync("api/Days", new Day { Date = date, TrainingprogramId = ProgramId });
+            if (result.IsSuccessStatusCode)
+            {
+                var day = await result.Content.ReadFromJsonAsync<Day>();
+                NavManager.NavigateTo($"/Days/Edit/{day.Id}");
+            }
+            else
+            {
+                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = result.ReasonPhrase, Duration = 20000 });
+            }
+        }
     }
 }
 
@@ -176,21 +138,4 @@
         font-weight: bold;
         margin-bottom: 5px;
     }
-
-    .popup {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background-color: white;
-        padding: 20px;
-        border: 1px solid #ccc;
-        z-index: 9999;
-    }
-
-        .popup textarea {
-            width: 100%;
-            height: 100px;
-            margin-bottom: 10px;
-        }
 </style>

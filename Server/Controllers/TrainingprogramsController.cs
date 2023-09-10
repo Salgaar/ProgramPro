@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration.UserSecrets;
+using Newtonsoft.Json;
 using ProgramPro.Server.Data;
 using ProgramPro.Server.Helpers;
 using ProgramPro.Shared.Models;
@@ -35,16 +36,19 @@ namespace ProgramPro.Server.Controllers
 
         // GET: api/Trainingprograms/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<TrainingProgram>> GetTrainingprogram(int id)
+        public async Task<ActionResult<string>> GetTrainingprogram(int id)
         {
-            var trainingprogram = await _context.TrainingPrograms/*.Where(x => x.ApplicationUserId == UserHelper.GetUserId(User))*/.FirstOrDefaultAsync(x => x.Id == id);
+            var trainingprogram = await _context.TrainingPrograms
+                /*.Where(x => x.ApplicationUserId == UserHelper.GetUserId(User))*/
+                .Include(x => x.Days)
+                .FirstOrDefaultAsync(x => x.Id == id);
 
             if (trainingprogram == null)
             {
                 return NotFound();
             }
 
-            return trainingprogram;
+            return JsonConvert.SerializeObject(trainingprogram, Extensions.JsonOptions.jsonSettings);
         }
 
         // PUT: api/Trainingprograms/5

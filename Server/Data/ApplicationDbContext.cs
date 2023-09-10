@@ -33,6 +33,12 @@ namespace ProgramPro.Server.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Exercise>().HasData(
+                new Exercise { Id = 1, Name = "Pull Up", Description = "Pull the chin over the bar" },
+                new Exercise { Id = 2, Name = "Back Squat", Description = "With a bar on the back, squat down to 90 degrees" },
+                new Exercise { Id = 3, Name = "Bench Press", Description = "Press a bar from the chest" }
+                );
         }
 
         public void SeedApplicationUsers(UserManager<ApplicationUser> userManager)

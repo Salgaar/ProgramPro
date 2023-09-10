@@ -29,16 +29,16 @@
         </RadzenRow>
         <RadzenRow>
             <RadzenColumn>
-                <RadzenSelectBar @bind-Value="@set.Type">
-                    <RadzenSelectBarItem Value="@SetType.Top">@SetType.Top.ToString()</RadzenSelectBarItem>
-                    <RadzenSelectBarItem Value="@SetType.Heavy">@SetType.Heavy.ToString()</RadzenSelectBarItem>
-                    <RadzenSelectBarItem Value="@SetType.Backoff">@SetType.Backoff.ToString()</RadzenSelectBarItem>
+                <RadzenSelectBar @bind-Value=@values Data="@data" TValue="IEnumerable<int>" Multiple="true" Change=@OnChange>
+                    <Items>
+                        <RadzenSelectBarItem Text="Static item" Value="0" />
+                    </Items>
                 </RadzenSelectBar>
             </RadzenColumn>
         </RadzenRow>
         <RadzenRow>
-            <RadzenButton @onclick="async() => await Save()">Create</RadzenButton>
-        </RadzenRow>a
+            <RadzenButton Click=@Save>Create</RadzenButton>
+        </RadzenRow>
     </RadzenCard>
 </div>
 
@@ -46,14 +46,21 @@
 
 @code {
     private Set set = new Set();
-
+    IEnumerable<int> values = new int[] { 1, 2 };
+    IEnumerable<SetType> data = (SetType[])Enum.GetValues(typeof(SetType));
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
     }
 
-    private async Task Save()
+    void OnChange(object value)
+    {
+        var str = value is IEnumerable<int> ? string.Join(", ", (IEnumerable<int>)value) : value;
+        Console.WriteLine($"Value changed to {str}");
+    }
+
+    private void Save()
     {
         DialogService.Close(set);
     }
