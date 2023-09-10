@@ -37,7 +37,7 @@
 
     </ul>
 
-    <RadzenButton Click="() => Save()">Create</RadzenButton>
+    <RadzenButton Click=@Save >Create</RadzenButton>
 }
 else
 {
@@ -69,11 +69,11 @@ else
         }
     }
 
-    private async Task AddSet()
+    private async Task AddSet()     
     {
         var set = await DialogService.OpenAsync<ProgramPro.Client.Pages.Set.Create>($"Add Set",
             new Dictionary<string, object>() { /* { "WorkoutExerciseId", Id } */ },
-            new DialogOptions() { Width = "400px", Height = "800px", Resizable = true, Draggable = true });
+            new DialogOptions() { Width = "700px", Height = "512px", Resizable = true, Draggable = true });
         if(set != null)
         {
             sets.Add((Set)set);
