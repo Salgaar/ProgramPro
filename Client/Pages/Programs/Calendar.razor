@@ -1,4 +1,4 @@
-﻿@inject NavigationManager NavManager 
+﻿@inject NavigationManager NavManager
 @inject HttpClient Http
 @inject NotificationService NotificationService
 
@@ -20,29 +20,51 @@
 <div class="calendar">
     @for (int cycle = 1; cycle <= CycleAmount; cycle++)
     {
-        <div class="week">
+        <div>
             <div class="week-number">
                 Cycle @cycle
             </div>
-            <div class="days">
-                @for (int day = 1; day <= DaysInACycle; day++)
+
+            @{
+                double divide = (double)DaysInACycle / 7;
+                double timesToRun = Math.Ceiling(divide);
+                int timesRan = 0;
+                int daysToRun = DaysInACycle;
+                int daysRan = 0;
+            }
+            @for (int i = 0; i < timesToRun; i++)
+            {
+                if(daysRan < DaysInACycle)
                 {
-                    int dayNumber = (cycle - 1) * DaysInACycle + day;
-                    var realDay = StartDate.AddDays(dayNumber - 1);
-                    <div class="day" @onclick="() => AddDay(realDay)">
-                        <div class="day-number">
-                            @realDay.Day : @realDay.DayOfWeek
-                        </div>
-                        @foreach (var item in Days)
-                        {
-                            if (item.Date.ToShortDateString() == realDay.ToShortDateString())
+                    <div class="week">
+                        <div class="days">
+                            @for (int day = 1; day <= 7; day++)
                             {
-                                @item.Id
+                                if (daysRan < DaysInACycle)
+                                {
+                                    int dayNumber = (cycle - 1) * DaysInACycle + daysRan + 1;
+                                    var realDay = StartDate.AddDays(dayNumber - 1);
+                                    <div class="day" @onclick="() => AddDay(realDay)">
+                                        <div class="day-number">
+                                            @realDay.Day : @realDay.DayOfWeek
+                                        </div>
+                                        @foreach (var item in Days)
+                                        {
+                                            if (item.Date.ToShortDateString() == realDay.ToShortDateString())
+                                            {
+                                                @item.Id
+                                            }
+                                        }
+                                    </div>
+                                }
+                                
+                                daysRan += 1;
                             }
-                        }
+                        </div>
                     </div>
                 }
-            </div>
+                timesRan += 1;
+            }
         </div>
     }
 </div>
@@ -71,16 +93,16 @@
     private async Task AddDay(DateTime date)
     {
         bool createNew = true;
-        foreach(var item in Days)
+        foreach (var item in Days)
         {
-            if(item.Date.ToShortDateString() == date.ToShortDateString())
+            if (item.Date.ToShortDateString() == date.ToShortDateString())
             {
                 createNew = false;
                 NavManager.NavigateTo($"/Days/Edit/{item.Id}");
                 break;
             }
         }
-        if(createNew == true)
+        if (createNew == true)
         {
             var result = await Http.PostAsJsonAsync("api/Days", new Day { Date = date, TrainingprogramId = ProgramId });
             if (result.IsSuccessStatusCode)
@@ -119,7 +141,7 @@
     .days {
         display: flex;
         flex-grow: 1; /* Days fill the remaining space */
-        justify-content: space-between; /* Fill the entire width */
+        /* justify-content: space-between; */ /* Fill the entire width */
     }
 
     .day {
