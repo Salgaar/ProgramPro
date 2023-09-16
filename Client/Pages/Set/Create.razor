@@ -41,7 +41,7 @@
                 <RadzenRow Style="margin-bottom:20px;">
                     <RadzenColumn Style="text-align:center">
                         <RadzenText Text="@DisplayNameHelper.GetDisplayName(set, "RPE")" />
-                        <RadzenNumeric @bind-Value="@set.RPE" />
+                        <RadzenTextBox @bind-Value="@set.RPE" />
                         <ValidationMessage For="() => set.RPE" />
                     </RadzenColumn>
                 </RadzenRow>
@@ -52,7 +52,7 @@
                 <RadzenRow Style="margin-bottom:20px;">
                     <RadzenColumn Style="text-align:center">
                         <RadzenText Text="@DisplayNameHelper.GetDisplayName(set, "RIR")" />
-                        <RadzenNumeric @bind-Value="@set.RIR" />
+                        <RadzenTextBox @bind-Value="@set.RIR" />
                         <ValidationMessage For="() => set.RIR" />
                     </RadzenColumn>
                 </RadzenRow>
@@ -63,7 +63,7 @@
                 <RadzenRow Style="margin-bottom:20px;">
                     <RadzenColumn Style="text-align:center">
                         <RadzenText Text="@DisplayNameHelper.GetDisplayName(set, "PercentageOfOneRepMax")" />
-                        <RadzenNumeric @bind-Value="@set.PercentageOfOneRepMax" />
+                        <RadzenTextBox @bind-Value="@set.PercentageOfOneRepMax" />
                         <ValidationMessage For="() => set.PercentageOfOneRepMax" />
                     </RadzenColumn>
                 </RadzenRow>

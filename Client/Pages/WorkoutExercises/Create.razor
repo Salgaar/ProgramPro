@@ -1,4 +1,4 @@
-﻿@page "/WorkoutExercises/Create/{DayId:int}"
+﻿@page "/WorkoutExercises/Create/{DayId:int}/{ExerciseId:int}"
 @inject HttpClient Http
 @inject DialogService DialogService
 @inject NavigationManager NavManager
@@ -27,7 +27,7 @@
     </RadzenRow>
     <RadzenRow>
         <RadzenColumn>
-            <RadzenDropDown TValue="int" @bind-Value="exerciseId" Data="@exercises" TextProperty="Name" ValueProperty="Id" Change=@OnChange />
+            <RadzenDropDown TValue="int" @bind-Value="ExerciseId" Data="@exercises" TextProperty="Name" ValueProperty="Id" Change=@OnChange />
         </RadzenColumn>
     </RadzenRow>
 
@@ -57,8 +57,9 @@ else
 @code {
     [Parameter]
     public int DayId { get; set; }
+    [Parameter]
+    public int ExerciseId { get; set; }
     private WorkoutExercise workoutExercise = new WorkoutExercise();
-    private int exerciseId = 0;
     private IEnumerable<Set> sets;
     private List<Exercise> exercises = new List<Exercise>();
     string dayCrumb = "";
@@ -90,7 +91,7 @@ else
 
     void OnChange()
     {
-        workoutExercise.ExerciseId = exerciseId;
+        workoutExercise.ExerciseId = ExerciseId;
     }
 
     private async Task AddSet()     

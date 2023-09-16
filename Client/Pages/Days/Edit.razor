@@ -3,6 +3,7 @@
 @inject NavigationManager NavManager
 @inject HttpClient Http
 @inject NotificationService NotificationService
+@inject DialogService DialogService
 
 
 <div class="rz-m-12">
@@ -63,6 +64,13 @@ else
 
     private async Task AddWorkoutExercise()
     {
-        NavManager.NavigateTo($"/WorkoutExercises/Create/{Id}");
+        var exercise = await DialogService.OpenAsync<PickExercise>($"Create Workout Exercise",
+            new Dictionary<string, object>() { },
+            new DialogOptions() { Resizable = true, Draggable = true });
+        if ((Exercise)exercise != default)
+        {
+            NavManager.NavigateTo($"/WorkoutExercises/Create/{Id}/{exercise.Id}");
+        }
+        
     }
 }
