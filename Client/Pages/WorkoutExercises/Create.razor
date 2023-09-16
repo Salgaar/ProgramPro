@@ -3,6 +3,7 @@
 @inject DialogService DialogService
 @inject NavigationManager NavManager
 @inject NotificationService NotificationService
+@using System.Linq.Dynamic.Core
 
 <div class="rz-m-12">
     <RadzenBreadCrumb>
@@ -17,7 +18,7 @@
 
 
 
-@if(workoutExercise != null)
+@if(workoutExercise != default)
 {
     <RadzenRow>
         <RadzenColumn>
@@ -26,49 +27,59 @@
     </RadzenRow>
     <RadzenRow>
         <RadzenColumn>
-            <RadzenDropDown TValue="int" @bind-Value="workoutExercise.ExerciseId" Data="@exercises" TextProperty="Name" ValueProperty="Id" />
+            <RadzenDropDown TValue="int" @bind-Value="exerciseId" Data="@exercises" TextProperty="Name" ValueProperty="Id" Change=@OnChange />
         </RadzenColumn>
     </RadzenRow>
 
     <RadzenButton Click="() => AddSet()">Add Set</RadzenButton>
 
     <RadzenText>Sets:</RadzenText>
-    <ul>                  
-        @if (sets != null)
-        {
-            @foreach (var set in sets)
-            {
-                <li>
-                    <p>Set Weight: @set.Weight</p>
-                </li>
-            }
-        }
-
-    </ul>
-
-    <RadzenButton Click=@Save >Create</RadzenButton>
+    <RadzenDataGrid Data="@sets" TItem="Set">
+        <Columns>
+            <RadzenDataGridColumn TItem="Set" Property="Weight" Title="Weight" />
+            <RadzenDataGridColumn TItem="Set" Property="Reps" Title="Reps" />
+            <RadzenDataGridColumn TItem="Set" Property="RPE" Title="RPE" />
+            <RadzenDataGridColumn TItem="Set" Property="RIR" Title="RIR" />
+            <RadzenDataGridColumn TItem="Set" Property="PercentageOfOneRepMax" Title="Percentage" />
+            <RadzenDataGridColumn TItem="Set" Property="Type" Title="Type" />
+        </Columns>
+    </RadzenDataGrid>
 }
 else
 {
-    <p>Workout Exercise not found.</p>
+    <RadzenRow>
+        <RadzenColumn>
+            <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Primary" Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+        </RadzenColumn>
+    </RadzenRow>
 }
 
 @code {
     [Parameter]
     public int DayId { get; set; }
     private WorkoutExercise workoutExercise = new WorkoutExercise();
-    private bool showPopup = false;
-    private List<Set> sets = new List<Set>();
+    private int exerciseId = 0;
+    private IEnumerable<Set> sets;
     private List<Exercise> exercises = new List<Exercise>();
-
     string dayCrumb = "";
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
+            workoutExercise.DayId = DayId;
             dayCrumb = $"/Days/Edit/{DayId}";
             exercises = await Http.GetFromJsonAsync<List<Exercise>>($"api/Exercises");
+            var result = await Http.PostAsJsonAsync("api/WorkoutExercises", workoutExercise);
+            if (!result.IsSuccessStatusCode)
+            {
+                NavManager.NavigateTo($"/Days/Edit/{DayId}");
+            }
+            else
+            {
+                workoutExercise = await result.Content.ReadFromJsonAsync<WorkoutExercise>();
+                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Created Workout Exercise", Detail = result.ReasonPhrase, Duration = 20000 });
+            }
             StateHasChanged();
         }
         catch (AccessTokenNotAvailableException exception)
@@ -77,49 +88,22 @@ else
         }
     }
 
+    void OnChange()
+    {
+        workoutExercise.ExerciseId = exerciseId;
+    }
+
     private async Task AddSet()     
     {
         var set = await DialogService.OpenAsync<ProgramPro.Client.Pages.Set.Create>($"Add Set",
-            new Dictionary<string, object>() { /* { "WorkoutExerciseId", Id } */ },
+            new Dictionary<string, object>() { { "WorkoutExerciseId", workoutExercise.Id } },
             new DialogOptions() { Width = "700px", Height = "512px", Resizable = true, Draggable = true });
         if((Set)set != default)
-        {   
-            sets.Add((Set)set);
+        {
+            List<Set> newSets = sets == null ? new List<Set>() : sets.ToList();
+            newSets.Add((Set)set);
+            sets = newSets;
             StateHasChanged();
-        }
-    }
-
-    private async Task Save()
-    {
-        workoutExercise.DayId = DayId;
-        var result = await Http.PostAsJsonAsync("api/WorkoutExercises", workoutExercise);
-        if (result.IsSuccessStatusCode)
-        {
-            if(sets.Count > 0)
-            {
-                var workoutExercise = await result.Content.ReadFromJsonAsync<WorkoutExercise>();
-                for (int i = 0; i < sets.Count; i++)
-                {
-                    sets[i].WorkoutExerciseId = workoutExercise.Id;
-                }
-                var result2 = await Http.PostAsJsonAsync("/api/Sets/PostSets", sets);
-                if (result2.IsSuccessStatusCode)
-                {
-                    NavManager.NavigateTo($"/Days/Edit/{DayId}");
-                }
-                else
-                {
-                    NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = result2.ReasonPhrase, Duration = 20000 });
-                }
-            }
-            else
-            {
-                NavManager.NavigateTo($"/Days/Edit/{DayId}");
-            }
-        }
-        else
-        {
-            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = result.ReasonPhrase, Duration = 20000 });
         }
     }
 }

@@ -80,7 +80,7 @@ namespace ProgramPro.Server.Data
 
         public void SeedData(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
         {
-            ClearDatabase();
+            //ClearDatabase();
             AddRoles(roleManager);
             SeedApplicationUsers(userManager);
         }

@@ -12,15 +12,15 @@ using ProgramPro.Server.Data;
 namespace ProgramPro.Server.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20230907201028_Initial")]
-    partial class Initial
+    [Migration("20230916133653_NullableExerciseId")]
+    partial class NullableExerciseId
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.9")
+                .HasAnnotation("ProductVersion", "7.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -455,14 +455,36 @@ namespace ProgramPro.Server.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Description")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
                     b.ToTable("Exercises");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Description = "Pull the chin over the bar",
+                            Name = "Pull Up"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Description = "With a bar on the back, squat down to 90 degrees",
+                            Name = "Back Squat"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Description = "Press a bar from the chest",
+                            Name = "Bench Press"
+                        });
                 });
 
             modelBuilder.Entity("ProgramPro.Shared.Models.ExerciseStatistics", b =>
@@ -585,6 +607,15 @@ namespace ProgramPro.Server.Data.Migrations
                     b.Property<int>("Type")
                         .HasColumnType("int");
 
+                    b.Property<bool>("UsingPercentageOfOneRepMax")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("UsingRIR")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("UsingRPE")
+                        .HasColumnType("bit");
+
                     b.Property<double>("Weight")
                         .HasColumnType("float");
 
@@ -607,6 +638,7 @@ namespace ProgramPro.Server.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("UserId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -623,12 +655,15 @@ namespace ProgramPro.Server.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ApplicationUserId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Description")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -649,7 +684,7 @@ namespace ProgramPro.Server.Data.Migrations
                     b.Property<int>("DayId")
                         .HasColumnType("int");
 
-                    b.Property<int>("ExerciseId")
+                    b.Property<int?>("ExerciseId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -809,7 +844,9 @@ namespace ProgramPro.Server.Data.Migrations
                 {
                     b.HasOne("ProgramPro.Shared.Models.ApplicationUser", "ApplicationUser")
                         .WithMany("TrainingPrograms")
-                        .HasForeignKey("ApplicationUserId");
+                        .HasForeignKey("ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("ApplicationUser");
                 });
@@ -824,9 +861,7 @@ namespace ProgramPro.Server.Data.Migrations
 
                     b.HasOne("ProgramPro.Shared.Models.Exercise", "Exercise")
                         .WithMany()
-                        .HasForeignKey("ExerciseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ExerciseId");
 
                     b.Navigation("Day");
 

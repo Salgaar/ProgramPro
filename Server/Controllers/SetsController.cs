@@ -77,31 +77,42 @@ namespace ProgramPro.Server.Controllers
         // POST: api/Sets
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Set>> PostSet(Set @set)
+        public async Task<ActionResult<Set>> PostSet([FromBody]Set @set)
         {
-            _context.Set.Add(@set);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetSet", new { id = @set.Id }, @set);
-        }
-
-        [HttpPost("PostSets")]
-        public async Task<ActionResult<IEnumerable<Set>>> PostSets(List<Set> sets)
-        
-        {
-            if (ModelState.IsValid)
+            if (set == null)
             {
-                _context.Set.AddRange(sets);
-                await _context.SaveChangesAsync();
-
-                return CreatedAtAction("GetSet", sets);
+                return BadRequest("Invalid data."); // Return a bad request response if the data is null.
             }
-            else
+
+            if (!ModelState.IsValid)
             {
+                ModelState.AddModelError(string.Empty,
+                     "Unable to post set because modelstate was invalid");
                 return BadRequest(ModelState);
             }
 
+            _context.Set.Add(@set);
+            await _context.SaveChangesAsync();
+            return CreatedAtAction("GetSet", new { id = @set.Id }, @set);
         }
+
+        //[HttpPost("PostSets")]
+        //public async Task<ActionResult<IEnumerable<Set>>> PostSets(List<Set> sets)
+        
+        //{
+        //    if (ModelState.IsValid)
+        //    {
+        //        _context.Set.AddRange(sets);
+        //        await _context.SaveChangesAsync();
+
+        //        return CreatedAtAction("GetSet", sets);
+        //    }
+        //    else
+        //    {
+        //        return BadRequest(ModelState);
+        //    }
+
+        //}
 
         // DELETE: api/Sets/5
         [HttpDelete("{id}")]

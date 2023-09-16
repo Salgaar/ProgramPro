@@ -4,66 +4,54 @@
 
 <RadzenRow>
     <RadzenColumn>
-        <RadzenText Text="Cycle Number" />
-        <RadzenNumeric @bind-Value="@DaysInACycle" />
+        <RadzenText Text="Days in a Split(include rest days)" />
+        <RadzenNumeric @bind-Value="@daysInASplit" />
     </RadzenColumn>
     <RadzenColumn>
-        <RadzenText Text="Week Number" />
-        <RadzenNumeric @bind-Value="@CycleAmount" />
+        <RadzenText Text="Split Number" />
+        <RadzenNumeric @bind-Value="@splitNumber" />
     </RadzenColumn>
     <RadzenColumn>
         <RadzenText Text="Start Date" />
-        <RadzenDatePicker @bind-Value="@StartDate" />
+        <RadzenDatePicker @bind-Value="@startDate" />
     </RadzenColumn>
 </RadzenRow>
 
+@{
+    double divide = (double)daysInASplit / 7;
+    double timesToRun = Math.Ceiling(divide);
+}
 <div class="calendar">
-    @for (int cycle = 1; cycle <= CycleAmount; cycle++)
+    @for (int split = 1; split <= splitNumber; split++)
     {
+        int daysRan = 0;
         <div>
-            <div class="week-number">
-                Cycle @cycle
+            <div class="split-number">
+                Split @split
             </div>
-
-            @{
-                double divide = (double)DaysInACycle / 7;
-                double timesToRun = Math.Ceiling(divide);
-                int timesRan = 0;
-                int daysToRun = DaysInACycle;
-                int daysRan = 0;
-            }
-            @for (int i = 0; i < timesToRun; i++)
+            @for (int i = 0; i < timesToRun && daysRan < daysInASplit; i++)
             {
-                if(daysRan < DaysInACycle)
-                {
-                    <div class="week">
-                        <div class="days">
-                            @for (int day = 1; day <= 7; day++)
-                            {
-                                if (daysRan < DaysInACycle)
+                <div class="split">
+                    <div class="days">
+                        @for (int day = 1; day <= 7 && daysRan < daysInASplit; day++, daysRan++)
+                        {
+                            int dayNumber = (split - 1) * daysInASplit + daysRan + 1;
+                            var realDay = startDate.AddDays(dayNumber - 1);
+                            <div class="day" @onclick="() => AddDay(realDay)">
+                                <div class="day-number">
+                                    @realDay.Day : @realDay.DayOfWeek
+                                </div>
+                                @foreach (var item in Days)
                                 {
-                                    int dayNumber = (cycle - 1) * DaysInACycle + daysRan + 1;
-                                    var realDay = StartDate.AddDays(dayNumber - 1);
-                                    <div class="day" @onclick="() => AddDay(realDay)">
-                                        <div class="day-number">
-                                            @realDay.Day : @realDay.DayOfWeek
-                                        </div>
-                                        @foreach (var item in Days)
-                                        {
-                                            if (item.Date.ToShortDateString() == realDay.ToShortDateString())
-                                            {
-                                                @item.Id
-                                            }
-                                        }
-                                    </div>
+                                    if (item.Date.ToShortDateString() == realDay.ToShortDateString())
+                                    {
+                                        @item.Id
+                                    }
                                 }
-                                
-                                daysRan += 1;
-                            }
-                        </div>
+                            </div>
+                        }
                     </div>
-                }
-                timesRan += 1;
+                </div>
             }
         </div>
     }
@@ -74,9 +62,9 @@
     public int ProgramId { get; set; }
     [Parameter]
     public List<Day> Days { get; set; }
-    public int DaysInACycle = 7;
-    public int CycleAmount = 1;
-    public DateTime StartDate = DateTime.Now;
+    public int daysInASplit = 7;
+    public int splitNumber = 1;
+    public DateTime startDate = DateTime.Now;
 
     protected override async Task OnInitializedAsync()
     {
@@ -125,14 +113,14 @@
         flex-direction: column;
     }
 
-    .week {
+    .split {
         display: flex;
         flex-direction: row; /* Display days horizontally within a week */
         align-items: center;
         margin-bottom: 10px; /* Separate weeks */
     }
 
-    .week-number {
+    .split-number {
         font-weight: bold;
         width: 10%; /* Fixed width for week numbers */
         text-align: center;

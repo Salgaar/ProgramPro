@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace ProgramPro.Server.Data.Migrations
 {
     /// <inheritdoc />
@@ -418,8 +420,11 @@ namespace ProgramPro.Server.Data.Migrations
                     WorkoutExerciseId = table.Column<int>(type: "int", nullable: false),
                     Weight = table.Column<double>(type: "float", nullable: false),
                     Reps = table.Column<int>(type: "int", nullable: false),
+                    UsingRPE = table.Column<bool>(type: "bit", nullable: false),
                     RPE = table.Column<double>(type: "float", nullable: false),
+                    UsingRIR = table.Column<bool>(type: "bit", nullable: false),
                     RIR = table.Column<int>(type: "int", nullable: false),
+                    UsingPercentageOfOneRepMax = table.Column<bool>(type: "bit", nullable: false),
                     PercentageOfOneRepMax = table.Column<int>(type: "int", nullable: false),
                     Type = table.Column<int>(type: "int", nullable: false)
                 },
@@ -456,6 +461,16 @@ namespace ProgramPro.Server.Data.Migrations
                         principalTable: "Set",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.InsertData(
+                table: "Exercises",
+                columns: new[] { "Id", "Description", "Name" },
+                values: new object[,]
+                {
+                    { 1, "Pull the chin over the bar", "Pull Up" },
+                    { 2, "With a bar on the back, squat down to 90 degrees", "Back Squat" },
+                    { 3, "Press a bar from the chest", "Bench Press" }
                 });
 
             migrationBuilder.CreateIndex(
