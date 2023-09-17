@@ -4,7 +4,7 @@
 @inject HttpClient Http
 @inject NotificationService NotificationService
 
-<EditForm Model="@set" OnValidSubmit="HandleValidSubmit">
+<EditForm Model="@Set" OnValidSubmit="HandleValidSubmit">
     <DataAnnotationsValidator />
     <ValidationSummary />
     <div class="alert alert-danger" style="display: @errorDisplay">
@@ -14,71 +14,79 @@
         <RadzenCard>
             <RadzenRow Style="margin-bottom:20px;">
                 <RadzenColumn Style="text-align:center">
-                    <RadzenText Text="@DisplayNameHelper.GetDisplayName(set, "Weight")" />
-                    <RadzenNumeric @bind-Value="@set.Weight" />
-                    <ValidationMessage For="() => set.Weight" />
+                    <RadzenText Text="@DisplayNameHelper.GetDisplayName(Set, "Weight")" />
+                    <RadzenNumeric @bind-Value="@Set.Weight" />
+                    <ValidationMessage For="() => Set.Weight" />
                 </RadzenColumn>
             </RadzenRow>
             <RadzenRow Style="margin-bottom:20px;">
                 <RadzenColumn Style="text-align:center">
-                    <RadzenText Text="@DisplayNameHelper.GetDisplayName(set, "Reps")" />
-                    <RadzenNumeric @bind-Value="@set.Reps" />
-                    <ValidationMessage For="() => set.Reps" />
+                    <RadzenText Text="@DisplayNameHelper.GetDisplayName(Set, "Reps")" />
+                    <RadzenNumeric @bind-Value="@Set.Reps" />
+                    <ValidationMessage For="() => Set.Reps" />
                 </RadzenColumn>
             </RadzenRow>
             <RadzenRow Style="margin-bottom:20px;">
                 <RadzenColumn Style="text-align:center">
                     <RadzenText Text="Select Difficulty Measurements" />
                     <RadzenSelectBar @bind-Value=@valuesForDifficulties Data="@difficultyValues" TValue="IEnumerable<string>" Multiple="true" Change=@OnChangeDifficulty />
-                    <ValidationMessage For="() => set.UsingRIR" />
-                    <ValidationMessage For="() => set.UsingRPE" />
-                    <ValidationMessage For="() => set.UsingPercentageOfOneRepMax" />
+                    <ValidationMessage For="() => Set.UsingRIR" />
+                    <ValidationMessage For="() => Set.UsingRPE" />
+                    <ValidationMessage For="() => Set.UsingPercentageOfOneRepMax" />
                 </RadzenColumn>
             </RadzenRow>
 
-            @if (set.UsingRPE)
+            @if (Set.UsingRPE)
             {
                 <RadzenRow Style="margin-bottom:20px;">
                     <RadzenColumn Style="text-align:center">
-                        <RadzenText Text="@DisplayNameHelper.GetDisplayName(set, "RPE")" />
-                        <RadzenTextBox @bind-Value="@set.RPE" />
-                        <ValidationMessage For="() => set.RPE" />
+                        <RadzenText Text="@DisplayNameHelper.GetDisplayName(Set, "RPE")" />
+                        <RadzenTextBox @bind-Value="@Set.RPE" />
+                        <ValidationMessage For="() => Set.RPE" />
                     </RadzenColumn>
                 </RadzenRow>
             }
 
-            @if (set.UsingRIR)
+            @if (Set.UsingRIR)
             {
                 <RadzenRow Style="margin-bottom:20px;">
                     <RadzenColumn Style="text-align:center">
-                        <RadzenText Text="@DisplayNameHelper.GetDisplayName(set, "RIR")" />
-                        <RadzenTextBox @bind-Value="@set.RIR" />
-                        <ValidationMessage For="() => set.RIR" />
+                        <RadzenText Text="@DisplayNameHelper.GetDisplayName(Set, "RIR")" />
+                        <RadzenTextBox @bind-Value="@Set.RIR" />
+                        <ValidationMessage For="() => Set.RIR" />
                     </RadzenColumn>
                 </RadzenRow>
             }
 
-            @if (set.UsingPercentageOfOneRepMax)
+            @if (Set.UsingPercentageOfOneRepMax)
             {
                 <RadzenRow Style="margin-bottom:20px;">
                     <RadzenColumn Style="text-align:center">
-                        <RadzenText Text="@DisplayNameHelper.GetDisplayName(set, "PercentageOfOneRepMax")" />
-                        <RadzenTextBox @bind-Value="@set.PercentageOfOneRepMax" />
-                        <ValidationMessage For="() => set.PercentageOfOneRepMax" />
+                        <RadzenText Text="@DisplayNameHelper.GetDisplayName(Set, "PercentageOfOneRepMax")" />
+                        <RadzenTextBox @bind-Value="@Set.PercentageOfOneRepMax" />
+                        <ValidationMessage For="() => Set.PercentageOfOneRepMax" />
                     </RadzenColumn>
                 </RadzenRow>
             }
 
             <RadzenRow Style="margin-bottom:20px;">
                 <RadzenColumn Style="text-align:center">
-                    <RadzenText Text="@DisplayNameHelper.GetDisplayName(set, "Type")" />
+                    <RadzenText Text="@DisplayNameHelper.GetDisplayName(Set, "Type")" />
                     <RadzenSelectBar @bind-Value=@enumValue Data="@enumValues" TValue="string" Multiple="false" Change=@OnChangeType />
-                    <ValidationMessage For="() => set.Type" />
+                    <ValidationMessage For="() => Set.Type" />
                 </RadzenColumn>
             </RadzenRow>
             <RadzenRow>
                 <RadzenColumn Style="text-align:right">
-                    <button type="submit">Create</button>
+                    @if (editing)
+                    {
+                        <button type="submit">Edit</button>
+                    }
+                    else
+                    {
+                         <button type="submit">Create</button>
+                    }
+                    
                 </RadzenColumn>
 
             </RadzenRow>
@@ -86,15 +94,14 @@
     </div>
 </EditForm>
 
-
-
-
 @code {
     [Parameter]
     public int WorkoutExerciseId { get; set; }
-    private Set set = new Set();
+    [Parameter]
+    public Set Set { get; set; } = null;
     string enumValue = null;
     IEnumerable<string> enumValues = Enum.GetNames(typeof(SetType)).ToList();
+    bool editing = true;
 
     private string errorMessage = string.Empty;
     private string errorDisplay = "none";
@@ -108,7 +115,12 @@
         await base.OnInitializedAsync();
         try
         {
-            set.WorkoutExerciseId = WorkoutExerciseId;
+            if(Set == null)
+            {
+                editing = false;
+                Set = new Set();
+                Set.WorkoutExerciseId = WorkoutExerciseId;
+            }
         }
         catch (AccessTokenNotAvailableException exception)
         {
@@ -123,7 +135,7 @@
         {
             if (type.ToString().Equals(value))
             {
-                set.Type = type;
+                Set.Type = type;
             }
         }
     }
@@ -135,7 +147,7 @@
         errorDisplay = "none";
 
         // Perform the HTTP POST request to the server
-        var response = await Http.PostAsJsonAsync("api/Sets", set);
+        var response = await Http.PostAsJsonAsync("api/Sets", Set);
 
         if (!response.IsSuccessStatusCode)
         {
@@ -154,29 +166,37 @@
         }
         else
         {
-            DialogService.Close(set);
-            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Success", Detail = "Set Created", Duration = 20000 });
+            DialogService.Close(Set);
+            if(editing)
+            {
+                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Success", Detail = "Set Edited", Duration = 20000 });
+            }
+            else
+            {
+                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Success", Detail = "Set Created", Duration = 20000 });
+            }
+            
         }
     }
 
     void OnChangeDifficulty(IEnumerable<string> values)
     {
-        set.UsingPercentageOfOneRepMax = false;
-        set.UsingRIR = false;
-        set.UsingRPE = false;
+        Set.UsingPercentageOfOneRepMax = false;
+        Set.UsingRIR = false;
+        Set.UsingRPE = false;
 
         foreach(var value in values)
         {
             switch (value)
             {
                 case "RPE":
-                    set.UsingRPE = true;
+                    Set.UsingRPE = true;
                     break;
                 case "RIR":
-                    set.UsingRIR = true;
+                    Set.UsingRIR = true;
                     break;
                 case "PercentageOfOneRepMax":
-                    set.UsingPercentageOfOneRepMax = true;
+                    Set.UsingPercentageOfOneRepMax = true;
                     break;
             }
         }

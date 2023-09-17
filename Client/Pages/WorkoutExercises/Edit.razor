@@ -1,4 +1,4 @@
-﻿@page "/WorkoutExercises/Create/{DayId:int}/{ExerciseId:int}"
+﻿@page "/WorkoutExercises/Edit/{DayId:int}/{ExerciseId:int}"
 @inject HttpClient Http
 @inject DialogService DialogService
 @inject NavigationManager NavManager
@@ -42,6 +42,11 @@
             <RadzenDataGridColumn TItem="Set" Property="RIR" Title="RIR" />
             <RadzenDataGridColumn TItem="Set" Property="PercentageOfOneRepMax" Title="Percentage" />
             <RadzenDataGridColumn TItem="Set" Property="Type" Title="Type" />
+            <RadzenDataGridColumn TItem="Set">
+                <Template Context="set">
+                    <RadzenButton Icon="edit" Size="ButtonSize.Small" Click="@(async args => await EditSet(set))" />
+                </Template>
+            </RadzenDataGridColumn>
         </Columns>
     </RadzenDataGrid>
 }
@@ -79,6 +84,7 @@ else
             else
             {
                 workoutExercise = await result.Content.ReadFromJsonAsync<WorkoutExercise>();
+                sets = workoutExercise.Sets;
                 NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Created Workout Exercise", Detail = result.ReasonPhrase, Duration = 20000 });
             }
             StateHasChanged();
@@ -89,6 +95,13 @@ else
         }
     }
 
+    private async Task EditSet(Set set)
+    {
+        await DialogService.OpenAsync<ProgramPro.Client.Pages.Set.CreateOrEdit>($"Edit Set",
+            new Dictionary<string, object>() { { "Set", set } },
+            new DialogOptions() { Width = "700px", Height = "512px", Resizable = true, Draggable = true });
+    }
+
     void OnChange()
     {
         workoutExercise.ExerciseId = ExerciseId;
@@ -96,7 +109,7 @@ else
 
     private async Task AddSet()     
     {
-        var set = await DialogService.OpenAsync<ProgramPro.Client.Pages.Set.Create>($"Add Set",
+        var set = await DialogService.OpenAsync<ProgramPro.Client.Pages.Set.CreateOrEdit>($"Add Set",
             new Dictionary<string, object>() { { "WorkoutExerciseId", workoutExercise.Id } },
             new DialogOptions() { Width = "700px", Height = "512px", Resizable = true, Draggable = true });
         if((Set)set != default)

@@ -32,7 +32,7 @@ namespace ProgramPro.Server.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<WorkoutExercise>> GetWorkoutExercise(int id)
         {
-            var workoutExercise = await _context.WorkoutExercises.FindAsync(id);
+            var workoutExercise = await _context.WorkoutExercises.Include(x => x.Sets).Include(x => x.Exercise).FirstOrDefaultAsync(x => x.Id == id);
 
             if (workoutExercise == null)
             {

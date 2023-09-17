@@ -23,19 +23,19 @@
 
     <h4>Workout Exercises</h4>
     <RadzenButton Click="() => AddWorkoutExercise()">Add Workout Exercise</RadzenButton>
-    <ul>
         @if (day.WorkoutExercises != null)
         {
-            @foreach (var exercise in day.WorkoutExercises)
-            {
-                <li>
-                    <p>Exercise Id: @exercise.ExerciseId</p>
-                    <!-- Add more exercise details here -->
-                </li>
-            }
+            <RadzenDataGrid Data="@workoutExercises" TItem="WorkoutExercise">
+                <Columns>
+                <RadzenDataGridColumn TItem="WorkoutExercise" Property="Exercise.Name" Title="Exercise" />
+                <RadzenDataGridColumn TItem="WorkoutExercise">
+                        <Template Context="workoutExercise">
+                            <RadzenButton Icon="edit" Size="ButtonSize.Small" Click="@(args => EditWorkoutExercise(workoutExercise))" />
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGrid>
         }
-
-    </ul>
 }
 else
 {
@@ -45,6 +45,7 @@ else
 @code {
     [Parameter]
     public int Id { get; set; }
+    private IEnumerable<WorkoutExercise> workoutExercises;
     public Day day = null;
     string programCrumb = "";
 
@@ -53,6 +54,7 @@ else
         try
         {
             day = await Http.GetFromJsonAsync<Day>($"api/Days/{Id}");
+            workoutExercises = day.WorkoutExercises;
             programCrumb = $"/Programs/Edit/{day.TrainingprogramId}";
             StateHasChanged();
         }
@@ -62,6 +64,11 @@ else
         }
     }
 
+    private void EditWorkoutExercise(WorkoutExercise workoutExercise)
+    {
+        NavManager.NavigateTo($"/WorkoutExercises/Edit/{Id}/{workoutExercise.Id}");
+    }
+
     private async Task AddWorkoutExercise()
     {
         var exercise = await DialogService.OpenAsync<PickExercise>($"Create Workout Exercise",
@@ -69,7 +76,7 @@ else
             new DialogOptions() { Resizable = true, Draggable = true });
         if ((Exercise)exercise != default)
         {
-            NavManager.NavigateTo($"/WorkoutExercises/Create/{Id}/{exercise.Id}");
+            NavManager.NavigateTo($"/WorkoutExercises/Edit/{Id}/{exercise.Id}");
         }
         
     }
