@@ -12,5 +12,8 @@ namespace ProgramPro.Shared.Models
         public ApplicationUser ApplicationUser { get; set; }
         public ICollection<Goal> Goals { get; set; }
         public ICollection<Day> Days { get; set; }
+        public DateTime StartDate { get; set; }
+        public int DaysInASplit { get; set; }
+        public int SplitNumber { get; set; }
     }
 }

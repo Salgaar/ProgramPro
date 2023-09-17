@@ -28,17 +28,20 @@ else
     <RadzenRow RowGap="2rem">
         <RadzenColumn>
             <RadzenRow>
-                <RadzenColumn Size="6">
+                <RadzenColumn Size="4">
                     <RadzenCard>
                         <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Name</RadzenText>
                         <RadzenTextBox Value="@program.Name" class="w-100" />
                     </RadzenCard>
                 </RadzenColumn>
-                <RadzenColumn Size="6">
+                <RadzenColumn Size="4">
                     <RadzenCard>
                         <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Description</RadzenText>
                         <RadzenTextArea class="w-100" />
                     </RadzenCard>
+                </RadzenColumn>
+                <RadzenColumn>
+                    <RadzenButton Click=@(async() => await Save())>Save</RadzenButton>
                 </RadzenColumn>
             </RadzenRow>
         </RadzenColumn>
@@ -51,6 +54,9 @@ else
 
 @code {
     [Parameter] public int Id { get; set; }
+    public int DaysInASplit { get; set; } = 7;
+    public int SplitNumber { get; set; } = 1;
+    public DateTime StartDate { get; set; } = DateTime.Now;
     TrainingProgram program = null;
 
     protected override async Task OnInitializedAsync()
@@ -63,6 +69,22 @@ else
         catch (AccessTokenNotAvailableException exception)
         {
             exception.Redirect();
+        }
+    }
+
+    private async Task Save()
+    {
+        program.DaysInASplit = DaysInASplit;
+        program.SplitNumber = SplitNumber;
+        program.StartDate = StartDate;
+        var response = await Http.PutAsJsonAsync($"api/Trainingprograms/{program.Id}", program);
+        if (response.IsSuccessStatusCode)
+        {
+
+        }
+        else
+        {
+            
         }
     }
 }

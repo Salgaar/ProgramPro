@@ -100,10 +100,13 @@ else
                 var response = await Http.DeleteAsync($"api/Days/{Id}");
                 if (response.IsSuccessStatusCode)
                 {
-                    NavManager.NavigateTo()
-                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Day Deleted", Detail = "", Duration = 5000 });
+                    NavManager.NavigateTo($"/Programs/Edit/{day.TrainingprogramId}");
+                    NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Day Deleted", Detail = "", Duration = 5000 });
                 }
-                
+                else
+                {
+                    NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Failed To Delete Day", Detail = "", Duration = 5000 });
+                }
             }
         }
     }

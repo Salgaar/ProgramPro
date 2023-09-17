@@ -54,6 +54,8 @@ app.UseRouting();
 app.UseIdentityServer();
 app.UseAuthorization();
 
+app.UseApiKeyMiddleware();
+
 app.MapRazorPages();
 app.MapControllers();
 app.MapFallbackToFile("index.html");

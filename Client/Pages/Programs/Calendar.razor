@@ -5,38 +5,38 @@
 <RadzenRow>
     <RadzenColumn>
         <RadzenText Text="Days in a Split(include rest days)" />
-        <RadzenNumeric @bind-Value="@daysInASplit" />
+        <RadzenNumeric @bind-Value="@DaysInASplit" />
     </RadzenColumn>
     <RadzenColumn>
         <RadzenText Text="Split Number" />
-        <RadzenNumeric @bind-Value="@splitNumber" />
+        <RadzenNumeric @bind-Value="@SplitNumber" />
     </RadzenColumn>
     <RadzenColumn>
         <RadzenText Text="Start Date" />
-        <RadzenDatePicker @bind-Value="@startDate" />
+        <RadzenDatePicker @bind-Value="@StartDate" />
     </RadzenColumn>
 </RadzenRow>
 
 @{
-    double divide = (double)daysInASplit / 7;
+    double divide = (double)DaysInASplit / 7;
     double timesToRun = Math.Ceiling(divide);
 }
 <div class="calendar">
-    @for (int split = 1; split <= splitNumber; split++)
+    @for (int split = 1; split <= SplitNumber; split++)
     {
         int daysRan = 0;
         <div>
             <div class="split-number">
                 Split @split
             </div>
-            @for (int i = 0; i < timesToRun && daysRan < daysInASplit; i++)
+            @for (int i = 0; i < timesToRun && daysRan < DaysInASplit; i++)
             {
                 <div class="split">
                     <div class="days">
-                        @for (int day = 1; day <= 7 && daysRan < daysInASplit; day++, daysRan++)
+                        @for (int day = 1; day <= 7 && daysRan < DaysInASplit; day++, daysRan++)
                         {
-                            int dayNumber = (split - 1) * daysInASplit + daysRan + 1;
-                            var realDay = startDate.AddDays(dayNumber - 1);
+                            int dayNumber = (split - 1) * DaysInASplit + daysRan + 1;
+                            var realDay = StartDate.AddDays(dayNumber - 1);
                             <div class="day" @onclick="() => AddDay(realDay)">
                                 <div class="day-number">
                                     @realDay.Day : @realDay.DayOfWeek
@@ -65,9 +65,12 @@
     public int ProgramId { get; set; }
     [Parameter]
     public List<Day> Days { get; set; }
-    public int daysInASplit = 7;
-    public int splitNumber = 1;
-    public DateTime startDate = DateTime.Now;
+    [Parameter]
+    public int DaysInASplit { get; set; }
+    [Parameter]
+    public int SplitNumber { get; set; }
+    [Parameter]
+    public DateTime StartDate { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
