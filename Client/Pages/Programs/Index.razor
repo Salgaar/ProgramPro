@@ -18,12 +18,24 @@
         <RadzenDataList WrapItems="false" PageSize="5" AllowPaging="true" Data="@programs" TItem="TrainingProgram">
             <Template Context="trainingProgram">
                 <RadzenRow>
-                    <RadzenColumn>
-                        <RadzenText TextStyle="TextStyle.H4">@trainingProgram.Name</RadzenText>
+                    <RadzenColumn Size="3">
+                        <RadzenText TextStyle="TextStyle.H5">@trainingProgram.Name</RadzenText>
                     </RadzenColumn>
                     <RadzenColumn>
                         <RadzenText TextStyle="TextStyle.Overline">Description</RadzenText>
                         <RadzenText TextStyle="TextStyle.Body1">@trainingProgram.Description</RadzenText>
+                    </RadzenColumn>
+                    <RadzenColumn>
+                        <RadzenText TextStyle="TextStyle.Overline">Start Date</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body1">@trainingProgram.StartDate</RadzenText>
+                    </RadzenColumn>
+                    <RadzenColumn>
+                        <RadzenText TextStyle="TextStyle.Overline">Split Amount</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body1">@trainingProgram.SplitNumber</RadzenText>
+                    </RadzenColumn>
+                    <RadzenColumn>
+                        <RadzenText TextStyle="TextStyle.Overline">Days Per Split</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body1">@trainingProgram.DaysInASplit</RadzenText>
                     </RadzenColumn>
                    <RadzenColumn>
                         <RadzenText TextStyle="TextStyle.Overline">Days</RadzenText>
@@ -62,7 +74,7 @@
 
     private async Task MakeNewProgram()
     {
-        var result = await Http.PostAsJsonAsync("api/Trainingprograms", new TrainingProgram { Name = "New Program" });
+        var result = await Http.PostAsJsonAsync("api/Trainingprograms", new TrainingProgram { Name = "New Program", DaysInASplit = 7, SplitNumber = 1, StartDate = DateTime.Now });
         if (result.IsSuccessStatusCode)
         {
             var program = await result.Content.ReadFromJsonAsync<TrainingProgram>();

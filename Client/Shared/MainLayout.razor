@@ -1,29 +1,33 @@
 ﻿@inherits LayoutComponentBase
 
-<RadzenDialog/>
-<RadzenNotification/>
-<RadzenContextMenu/>
-<RadzenTooltip/>
+<RadzenDialog />
+<RadzenNotification />
+<RadzenContextMenu />
+<RadzenTooltip />
 
 <RadzenLayout Style="height: 100vh; grid-template-columns: 1fr auto; grid-template-areas: 'rz-header rz-header' 'rz-body rz-sidebar'">
     <RadzenHeader>
         <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" AlignItems="AlignItems.Center" Gap="1rem">
-@*---------- Authentication and Authorization ----------*@
             <LoginDisplay />
+            <RadzenSidebarToggle Style="margin:0;" Click="@(() => sidebar1Expanded = !sidebar1Expanded)" />
         </RadzenStack>
+
     </RadzenHeader>
-    <RadzenSidebar >
+    
+    <RadzenSidebar @bind-Expanded="@sidebar1Expanded">
         <RadzenPanelMenu>
             <RadzenNav Href="" Text="Dashboard" Icon="dashboard" />
             <RadzenNav Href="Programs" Text="Programs" Icon="assignment" />
             <RadzenNav Href="PartDefinitions" Text="Part Definitions" Icon="donut_small" />
         </RadzenPanelMenu>
     </RadzenSidebar>
-    <RadzenBody >
+
+    <RadzenBody>
         @Body
     </RadzenBody>
 </RadzenLayout>
 
 @code {
-    bool sidebarExpanded = true;
+    bool sidebar1Expanded = true;
+
 }

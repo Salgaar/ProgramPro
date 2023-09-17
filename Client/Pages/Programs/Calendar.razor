@@ -2,56 +2,64 @@
 @inject HttpClient Http
 @inject NotificationService NotificationService
 
-<RadzenRow>
-    <RadzenColumn>
-        <RadzenText Text="Days in a Split(include rest days)" />
-        <RadzenNumeric @bind-Value="@DaysInASplit" />
-    </RadzenColumn>
-    <RadzenColumn>
-        <RadzenText Text="Split Number" />
-        <RadzenNumeric @bind-Value="@SplitNumber" />
-    </RadzenColumn>
-    <RadzenColumn>
-        <RadzenText Text="Start Date" />
-        <RadzenDatePicker @bind-Value="@StartDate" />
-    </RadzenColumn>
-</RadzenRow>
+
+<RadzenCard>
+    <RadzenRow>
+        <RadzenColumn>
+            <RadzenText Text="Days in a Split(include rest days)" />
+            <RadzenNumeric @bind-Value="@Program.DaysInASplit" class="w-100" />
+        </RadzenColumn>
+        <RadzenColumn>
+            <RadzenText Text="Split Number" />
+            <RadzenNumeric @bind-Value="@Program.SplitNumber" class="w-100" />
+        </RadzenColumn>
+        <RadzenColumn>
+            <RadzenText Text="Start Date" />
+            <RadzenDatePicker @bind-Value="@Program.StartDate" class="w-100" />
+        </RadzenColumn>
+    </RadzenRow>
+</RadzenCard>
+
+
+
 
 @{
-    double divide = (double)DaysInASplit / 7;
+    double divide = (double)Program.DaysInASplit / 7;
     double timesToRun = Math.Ceiling(divide);
 }
 <div class="calendar">
-    @for (int split = 1; split <= SplitNumber; split++)
+    @for (int split = 1; split <= Program.SplitNumber; split++)
     {
         int daysRan = 0;
         <div>
             <div class="split-number">
                 Split @split
             </div>
-            @for (int i = 0; i < timesToRun && daysRan < DaysInASplit; i++)
+            @for (int i = 0; i < timesToRun && daysRan < Program.DaysInASplit; i++)
             {
                 <div class="split">
                     <div class="days">
-                        @for (int day = 1; day <= 7 && daysRan < DaysInASplit; day++, daysRan++)
+                        @for (int day = 1; day <= 7 && daysRan < Program.DaysInASplit; day++, daysRan++)
                         {
-                            int dayNumber = (split - 1) * DaysInASplit + daysRan + 1;
-                            var realDay = StartDate.AddDays(dayNumber - 1);
-                            <div class="day" @onclick="() => AddDay(realDay)">
-                                <div class="day-number">
-                                    @realDay.Day : @realDay.DayOfWeek
-                                </div>
-                                @foreach (var item in Days)
-                                {
-                                    if(item.Date.ToShortDateString() == realDay.ToShortDateString())
+                            int dayNumber = (split - 1) * Program.DaysInASplit + daysRan + 1;
+                            var realDay = Program.StartDate.AddDays(dayNumber - 1);
+
+                                <div class="day" @onclick="() => AddDay(realDay)">
+                                    <div class="day-number">
+                                        @realDay.Day : @realDay.DayOfWeek
+                                    </div>
+                                    @foreach (var item in Program.Days)
                                     {
-                                        @foreach (var workoutExercise in item.WorkoutExercises)
+                                        if (item.Date.ToShortDateString() == realDay.ToShortDateString())
                                         {
-                                            <p style="margin-bottom:5px">@workoutExercise.Exercise.Name: @workoutExercise.Sets.Count sets</p>
+                                            @foreach (var workoutExercise in item.WorkoutExercises)
+                                            {
+                                                <p style="margin-bottom:5px">@workoutExercise.Exercise.Name: @workoutExercise.Sets.Count sets</p>
+                                            }
                                         }
                                     }
-                                }
-                            </div>
+                                </div>
+                            
                         }
                     </div>
                 </div>
@@ -62,15 +70,7 @@
 
 @code {
     [Parameter]
-    public int ProgramId { get; set; }
-    [Parameter]
-    public List<Day> Days { get; set; }
-    [Parameter]
-    public int DaysInASplit { get; set; }
-    [Parameter]
-    public int SplitNumber { get; set; }
-    [Parameter]
-    public DateTime StartDate { get; set; }
+    public TrainingProgram Program { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -87,7 +87,7 @@
     private async Task AddDay(DateTime date)
     {
         bool createNew = true;
-        foreach (var item in Days)
+        foreach (var item in Program.Days)
         {
             if (item.Date.ToShortDateString() == date.ToShortDateString())
             {
@@ -98,7 +98,7 @@
         }
         if (createNew == true)
         {
-            var result = await Http.PostAsJsonAsync("api/Days", new Day { Date = date, TrainingprogramId = ProgramId });
+            var result = await Http.PostAsJsonAsync("api/Days", new Day { Date = date, TrainingprogramId = Program.Id });
             if (result.IsSuccessStatusCode)
             {
                 var day = await result.Content.ReadFromJsonAsync<Day>();

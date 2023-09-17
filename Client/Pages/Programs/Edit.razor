@@ -1,6 +1,7 @@
 ﻿@page "/Programs/Edit/{Id:int}"
 @inject HttpClient Http
 @inject DialogService DialogService
+@inject NotificationService NotificationService
 
 <div class="rz-m-12">
     <RadzenBreadCrumb>
@@ -9,7 +10,7 @@
     </RadzenBreadCrumb>
 </div>
 
-@if (program == null)
+@if (Program == null)
 {
     <RadzenRow>
         <RadzenColumn>
@@ -20,50 +21,46 @@
 }
 else
 {
-    <RadzenRow RowGap="2rem">
+    <RadzenRow Style="margin-bottom:10px">
+            <RadzenColumn>
+                <RadzenButton Style="float:right;" ButtonStyle="ButtonStyle.Success" Click=@(async() => await Save())>Save</RadzenButton>
+            </RadzenColumn>
+    </RadzenRow>
+    <RadzenRow Style="margin-bottom:10px">
         <RadzenColumn>
-            <RadzenText TextAlign="TextAlign.Center" TextStyle="TextStyle.H2">Edit Training Program</RadzenText>
+            <RadzenCard>
+                <RadzenRow>
+                    <RadzenColumn Size="6">
+
+                        <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H3">Name</RadzenText>
+                        <RadzenTextBox @bind-Value="Program.Name" class="w-100" />
+
+                    </RadzenColumn>
+                    <RadzenColumn Size="6">
+
+                        <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H3">Description</RadzenText>
+                        <RadzenTextArea @bind-Value="Program.Description" class="w-100" />
+
+                    </RadzenColumn>
+                </RadzenRow>
+            </RadzenCard>
+            
         </RadzenColumn>
     </RadzenRow>
-    <RadzenRow RowGap="2rem">
-        <RadzenColumn>
-            <RadzenRow>
-                <RadzenColumn Size="4">
-                    <RadzenCard>
-                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Name</RadzenText>
-                        <RadzenTextBox Value="@program.Name" class="w-100" />
-                    </RadzenCard>
-                </RadzenColumn>
-                <RadzenColumn Size="4">
-                    <RadzenCard>
-                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Description</RadzenText>
-                        <RadzenTextArea class="w-100" />
-                    </RadzenCard>
-                </RadzenColumn>
-                <RadzenColumn>
-                    <RadzenButton Click=@(async() => await Save())>Save</RadzenButton>
-                </RadzenColumn>
-            </RadzenRow>
-        </RadzenColumn>
-    </RadzenRow>
-<RadzenRow>
-        <Calendar Days="program.Days.ToList()" ProgramId="@Id" />
-</RadzenRow>
+    <Calendar Program=@Program />
 }
 
 
 @code {
-    [Parameter] public int Id { get; set; }
-    public int DaysInASplit { get; set; } = 7;
-    public int SplitNumber { get; set; } = 1;
-    public DateTime StartDate { get; set; } = DateTime.Now;
-    TrainingProgram program = null;
+    [Parameter] 
+    public int Id { get; set; }
+    public TrainingProgram Program { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            program = await Http.GetFromJsonAsync<TrainingProgram>($"api/Trainingprograms/{Id}");
+            Program = await Http.GetFromJsonAsync<TrainingProgram>($"api/Trainingprograms/{Id}");
             StateHasChanged();
         }
         catch (AccessTokenNotAvailableException exception)
@@ -74,17 +71,14 @@ else
 
     private async Task Save()
     {
-        program.DaysInASplit = DaysInASplit;
-        program.SplitNumber = SplitNumber;
-        program.StartDate = StartDate;
-        var response = await Http.PutAsJsonAsync($"api/Trainingprograms/{program.Id}", program);
+        var response = await Http.PutAsJsonAsync($"api/Trainingprograms/{Program.Id}", Program);
         if (response.IsSuccessStatusCode)
         {
-
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Program changes saved", Detail = "", Duration = 5000 });
         }
         else
         {
-            
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error saving changes", Detail = response.ReasonPhrase, Duration = 5000 });
         }
     }
 }

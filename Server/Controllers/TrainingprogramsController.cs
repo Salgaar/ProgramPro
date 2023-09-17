@@ -15,6 +15,7 @@ using ProgramPro.Shared.Models;
 
 namespace ProgramPro.Server.Controllers
 {
+    [ApiKeyAuthorization]
     [Route("api/[controller]")]
     [ApiController]
     public class TrainingprogramsController : ControllerBase
