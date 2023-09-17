@@ -1,4 +1,4 @@
-﻿@page "/WorkoutExercises/Edit/{DayId:int}/{ExerciseId:int}"
+﻿@page "/WorkoutExercises/Edit/{Id:int}"
 @inject HttpClient Http
 @inject DialogService DialogService
 @inject NavigationManager NavManager
@@ -22,12 +22,7 @@
 {
     <RadzenRow>
         <RadzenColumn>
-            <RadzenText>Day Id: @DayId</RadzenText>
-        </RadzenColumn>
-    </RadzenRow>
-    <RadzenRow>
-        <RadzenColumn>
-            <RadzenDropDown TValue="int" @bind-Value="ExerciseId" Data="@exercises" TextProperty="Name" ValueProperty="Id" Change=@OnChange />
+            <RadzenDropDown TValue="int" @bind-Value="exerciseId" Data="@exercises" TextProperty="Name" ValueProperty="Id" Change=@OnChange />
         </RadzenColumn>
     </RadzenRow>
 
@@ -61,32 +56,22 @@ else
 
 @code {
     [Parameter]
-    public int DayId { get; set; }
-    [Parameter]
-    public int ExerciseId { get; set; }
+    public int Id { get; set; }
     private WorkoutExercise workoutExercise = new WorkoutExercise();
     private IEnumerable<Set> sets;
-    private List<Exercise> exercises = new List<Exercise>();
+    private IEnumerable<Exercise> exercises;
+    private int exerciseId;
     string dayCrumb = "";
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            workoutExercise.DayId = DayId;
-            dayCrumb = $"/Days/Edit/{DayId}";
             exercises = await Http.GetFromJsonAsync<List<Exercise>>($"api/Exercises");
-            var result = await Http.PostAsJsonAsync("api/WorkoutExercises", workoutExercise);
-            if (!result.IsSuccessStatusCode)
-            {
-                NavManager.NavigateTo($"/Days/Edit/{DayId}");
-            }
-            else
-            {
-                workoutExercise = await result.Content.ReadFromJsonAsync<WorkoutExercise>();
-                sets = workoutExercise.Sets;
-                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Created Workout Exercise", Detail = result.ReasonPhrase, Duration = 20000 });
-            }
+            workoutExercise = await Http.GetFromJsonAsync<WorkoutExercise>($"api/WorkoutExercises/{Id}");
+            sets = workoutExercise.Sets;
+            exerciseId = workoutExercise.ExerciseId;
+            dayCrumb = $"/Days/Edit/{workoutExercise.DayId}";
             StateHasChanged();
         }
         catch (AccessTokenNotAvailableException exception)
@@ -102,9 +87,18 @@ else
             new DialogOptions() { Width = "700px", Height = "512px", Resizable = true, Draggable = true });
     }
 
-    void OnChange()
+    async Task OnChange()
     {
-        workoutExercise.ExerciseId = ExerciseId;
+        workoutExercise.ExerciseId = exerciseId;
+        var response = await Http.PutAsJsonAsync($"api/WorkoutExercises/{Id}", workoutExercise);
+        if (response.IsSuccessStatusCode)
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Updated Workout Exercise", Detail = "", Duration = 5000 });
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Failed To Update Workout Exercise", Detail = response.ReasonPhrase, Duration = 5000 });
+        }
     }
 
     private async Task AddSet()     

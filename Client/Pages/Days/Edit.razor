@@ -28,11 +28,17 @@
             <RadzenDataGrid Data="@workoutExercises" TItem="WorkoutExercise">
                 <Columns>
                 <RadzenDataGridColumn TItem="WorkoutExercise" Property="Exercise.Name" Title="Exercise" />
+                <RadzenDataGridColumn TItem="WorkoutExercise" Title="Sets">
+                    <Template Context="workoutExercise">
+                        @workoutExercise.Sets.Count
+                    </Template>
+                </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="WorkoutExercise">
                         <Template Context="workoutExercise">
                             <RadzenButton Icon="edit" Size="ButtonSize.Small" Click="@(args => EditWorkoutExercise(workoutExercise))" />
                         </Template>
-                    </RadzenDataGridColumn>
+                </RadzenDataGridColumn>
+
                 </Columns>
             </RadzenDataGrid>
         }
@@ -66,17 +72,17 @@ else
 
     private void EditWorkoutExercise(WorkoutExercise workoutExercise)
     {
-        NavManager.NavigateTo($"/WorkoutExercises/Edit/{Id}/{workoutExercise.Id}");
+        NavManager.NavigateTo($"/WorkoutExercises/Edit/{workoutExercise.Id}");
     }
 
     private async Task AddWorkoutExercise()
     {
-        var exercise = await DialogService.OpenAsync<PickExercise>($"Create Workout Exercise",
-            new Dictionary<string, object>() { },
+        var workoutExercise = await DialogService.OpenAsync<ProgramPro.Client.Pages.WorkoutExercises.Create>($"Create Workout Exercise",
+            new Dictionary<string, object>() { { "DayId", Id} },
             new DialogOptions() { Resizable = true, Draggable = true });
-        if ((Exercise)exercise != default)
+        if ((WorkoutExercise)workoutExercise != default)
         {
-            NavManager.NavigateTo($"/WorkoutExercises/Edit/{Id}/{exercise.Id}");
+            NavManager.NavigateTo($"/WorkoutExercises/Edit/{workoutExercise.Id}");
         }
         
     }

@@ -28,10 +28,13 @@ namespace ProgramPro.Server.Controllers
 
         // GET: api/Trainingprograms
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TrainingProgram>>> GetTrainingprograms()
+        public async Task<ActionResult<string>> GetTrainingprograms()
         {
-            var programs = await _context.TrainingPrograms/*.Where(x => x.ApplicationUserId == UserHelper.GetUserId(User))*/.ToListAsync();
-            return programs;
+            var programs = await _context.TrainingPrograms
+                .Include(x => x.Days)
+                /*.Where(x => x.ApplicationUserId == UserHelper.GetUserId(User))*/
+                .ToListAsync();
+            return JsonConvert.SerializeObject(programs, Extensions.JsonOptions.jsonSettings);
         }
 
         // GET: api/Trainingprograms/5
@@ -40,7 +43,8 @@ namespace ProgramPro.Server.Controllers
         {
             var trainingprogram = await _context.TrainingPrograms
                 /*.Where(x => x.ApplicationUserId == UserHelper.GetUserId(User))*/
-                .Include(x => x.Days)
+                .Include(x => x.Days).ThenInclude(x => x.WorkoutExercises).ThenInclude(x => x.Sets)
+                .Include(x => x.Days).ThenInclude(x => x.WorkoutExercises).ThenInclude(x => x.Exercise)
                 .FirstOrDefaultAsync(x => x.Id == id);
 
             if (trainingprogram == null)

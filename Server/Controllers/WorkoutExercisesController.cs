@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using ProgramPro.Server.Data;
 using ProgramPro.Shared.Models;
 
@@ -30,7 +31,7 @@ namespace ProgramPro.Server.Controllers
 
         // GET: api/WorkoutExercises/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<WorkoutExercise>> GetWorkoutExercise(int id)
+        public async Task<ActionResult<string>> GetWorkoutExercise(int id)
         {
             var workoutExercise = await _context.WorkoutExercises.Include(x => x.Sets).Include(x => x.Exercise).FirstOrDefaultAsync(x => x.Id == id);
 
@@ -39,7 +40,7 @@ namespace ProgramPro.Server.Controllers
                 return NotFound();
             }
 
-            return workoutExercise;
+            return JsonConvert.SerializeObject(workoutExercise, Extensions.JsonOptions.jsonSettings);
         }
 
         // PUT: api/WorkoutExercises/5

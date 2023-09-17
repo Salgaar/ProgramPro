@@ -43,9 +43,12 @@
                                 </div>
                                 @foreach (var item in Days)
                                 {
-                                    if (item.Date.ToShortDateString() == realDay.ToShortDateString())
+                                    if(item.Date.ToShortDateString() == realDay.ToShortDateString())
                                     {
-                                        @item.Id
+                                        @foreach (var workoutExercise in item.WorkoutExercises)
+                                        {
+                                            <p style="margin-bottom:5px">@workoutExercise.Exercise.Name: @workoutExercise.Sets.Count sets</p>
+                                        }
                                     }
                                 }
                             </div>
@@ -137,7 +140,7 @@
         border: 1px solid #ccc;
         padding: 5px;
         cursor: pointer;
-        height: 200px;
+        height: auto;
         display: flex;
         flex-direction: column;
         align-items: center;

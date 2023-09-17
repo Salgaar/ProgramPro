@@ -1,0 +1,57 @@
+﻿@inject HttpClient Http
+@inject DialogService DialogService
+@inject NotificationService NotificationService
+
+<RadzenCard>
+    <RadzenRow>
+        <RadzenColumn>
+            <RadzenDropDown TValue="int" @bind-Value="exerciseId" Data="@exercises" TextProperty="Name" ValueProperty="Id" />
+        </RadzenColumn>
+    </RadzenRow>
+    <RadzenRow>
+        <RadzenColumn>
+            <RadzenButton Click=@CreateNew>Create</RadzenButton>
+        </RadzenColumn>
+    </RadzenRow>
+</RadzenCard>
+
+
+@code {
+    [Parameter]
+    public int DayId { get; set; }
+    private List<Exercise> exercises = new List<Exercise>();
+    int exerciseId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            exercises = await Http.GetFromJsonAsync<List<Exercise>>($"api/Exercises");
+            StateHasChanged();
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+
+    private async Task CreateNew()
+    {
+        var workoutExercise = new WorkoutExercise
+            {
+                DayId = DayId,
+                ExerciseId = exerciseId
+            };
+        var response = await Http.PostAsJsonAsync("api/WorkoutExercises", workoutExercise);
+        if (response.IsSuccessStatusCode)
+        {
+            workoutExercise = await response.Content.ReadFromJsonAsync<WorkoutExercise>();
+            DialogService.Close(workoutExercise);
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Created Workout Exercise", Detail = "", Duration = 5000 });
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Failed To Create Workout Exercise", Detail = "", Duration = 5000 });
+        }
+    }
+}

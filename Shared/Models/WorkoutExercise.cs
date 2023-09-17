@@ -14,7 +14,7 @@ namespace ProgramPro.Shared.Models
         [Required]
         public int DayId { get; set; }
         public Day Day { get; set; }
-        public int? ExerciseId { get; set; }
+        public int ExerciseId { get; set; }
         public Exercise Exercise { get; set; }
         public ICollection<Set> Sets { get; set; }
     }
