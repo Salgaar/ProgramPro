@@ -1,0 +1,32 @@
+﻿@inject DialogService DialogService
+
+<RadzenCard>
+    <RadzenRow>
+        <RadzenColumn>
+            <RadzenText Text="@Message" />
+        </RadzenColumn>
+    </RadzenRow>
+    <RadzenRow>
+        <RadzenColumn>
+            <RadzenButton Click=@Confirm ButtonStyle="ButtonStyle.Danger">Confirm</RadzenButton>
+        </RadzenColumn>
+        <RadzenColumn>
+            <RadzenButton Click=@Cancel ButtonStyle="ButtonStyle.Light">Cancel</RadzenButton>
+        </RadzenColumn>
+    </RadzenRow>
+</RadzenCard>
+
+@code {
+    [Parameter]
+    public string Message { get; set; }
+
+    private void Confirm()
+    {
+        DialogService.Close(true);
+    }
+
+    private void Cancel()
+    {
+        DialogService.Close(false);
+    }
+}
