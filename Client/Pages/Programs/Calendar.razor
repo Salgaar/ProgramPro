@@ -56,9 +56,9 @@
                                         {
                                             <p style="margin-bottom:5px">@workoutExercise.Exercise.Name: @workoutExercise.Sets.Count sets</p>
                                         }
-                                        if (item.WorkoutExercises == null)
+                                        if (item.WorkoutExercises.Count == 0)
                                         {
-                                            <p>No Workout Exercises Found</p>
+                                            <p>Training day is Empty</p>
                                         }
                                     }
                                 }
