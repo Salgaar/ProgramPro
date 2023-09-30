@@ -15,7 +15,7 @@
         </RadzenColumn>
         <RadzenColumn>
             <RadzenText Text="Start Date" />
-            <RadzenDatePicker @bind-Value="@Program.StartDate" class="w-100" />
+            <RadzenDatePicker DateFormat="d" @bind-Value="@Program.StartDate" class="w-100" />
         </RadzenColumn>
     </RadzenRow>
 </RadzenCard>
@@ -44,22 +44,26 @@
                             int dayNumber = (split - 1) * Program.DaysInASplit + daysRan + 1;
                             var realDay = Program.StartDate.AddDays(dayNumber - 1);
 
-                                <div class="day" @onclick="() => AddDay(realDay)">
-                                    <div class="day-number">
-                                        @realDay.Day : @realDay.DayOfWeek
-                                    </div>
-                                    @foreach (var item in Program.Days)
+                            <div class="day" @onclick="() => AddDay(realDay)">
+                                <div class="day-number">
+                                    @realDay.Day : @realDay.DayOfWeek
+                                </div>
+                                @foreach (var item in Program.Days)
+                                {
+                                    if (item.Date.ToShortDateString() == realDay.ToShortDateString())
                                     {
-                                        if (item.Date.ToShortDateString() == realDay.ToShortDateString())
+                                        @foreach (var workoutExercise in item.WorkoutExercises)
                                         {
-                                            @foreach (var workoutExercise in item.WorkoutExercises)
-                                            {
-                                                <p style="margin-bottom:5px">@workoutExercise.Exercise.Name: @workoutExercise.Sets.Count sets</p>
-                                            }
+                                            <p style="margin-bottom:5px">@workoutExercise.Exercise.Name: @workoutExercise.Sets.Count sets</p>
+                                        }
+                                        if (item.WorkoutExercises == null)
+                                        {
+                                            <p>No Workout Exercises Found</p>
                                         }
                                     }
-                                </div>
-                            
+                                }
+                            </div>
+
                         }
                     </div>
                 </div>

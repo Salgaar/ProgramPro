@@ -12,6 +12,7 @@
     <Content Remove="Pages\Statistics\**" />
     <EmbeddedResource Remove="Pages\Statistics\**" />
     <None Remove="Pages\Statistics\**" />
+    <InternalsVisibleTo Include="..\Shared\ProgramPro.Tests.csproj" />
   </ItemGroup>
 
   <ItemGroup>

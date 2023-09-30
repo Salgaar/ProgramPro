@@ -27,7 +27,7 @@
                     </RadzenColumn>
                     <RadzenColumn>
                         <RadzenText TextStyle="TextStyle.Overline">Start Date</RadzenText>
-                        <RadzenText TextStyle="TextStyle.Body1">@trainingProgram.StartDate</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body1">@trainingProgram.StartDate.ToShortDateString()</RadzenText>
                     </RadzenColumn>
                     <RadzenColumn>
                         <RadzenText TextStyle="TextStyle.Overline">Split Amount</RadzenText>
@@ -38,7 +38,7 @@
                         <RadzenText TextStyle="TextStyle.Body1">@trainingProgram.DaysInASplit</RadzenText>
                     </RadzenColumn>
                    <RadzenColumn>
-                        <RadzenText TextStyle="TextStyle.Overline">Days</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Overline">Training Days</RadzenText>
                         <RadzenText TextStyle="TextStyle.Body1">@trainingProgram.Days.Count</RadzenText>
                    </RadzenColumn>
                    <RadzenColumn>

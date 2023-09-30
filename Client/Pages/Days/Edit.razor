@@ -14,16 +14,22 @@
     </RadzenBreadCrumb>
 </div>
 
-<h3>Edit Day</h3>
-
 @if (day != null)
 {
-    <p>Date: @day.Date.ToShortDateString()</p>
-    <p>Training Program Id: @day.TrainingprogramId</p>
+    <RadzenRow>
+        <RadzenText Style="color:darkseagreen" TextStyle="TextStyle.DisplayH5">@day.Date.ToShortDateString()</RadzenText>
+</RadzenRow>
 
-    <h4>Workout Exercises</h4>
-    <RadzenButton Click="() => AddWorkoutExercise()">Add Workout Exercise</RadzenButton>
-    <RadzenButton Click=@Delete>Delete Day</RadzenButton>
+     <RadzenRow>
+        <RadzenText TextStyle="TextStyle.DisplayH6">Workout Exercises</RadzenText>
+     </RadzenRow>
+    
+   
+    <RadzenRow Style="margin-bottom:20px;">
+        <RadzenButton Click="() => AddWorkoutExercise()">Add Workout Exercise</RadzenButton>
+        <RadzenButton Click=@Delete>Delete Day</RadzenButton>
+    </RadzenRow>
+
         @if (day.WorkoutExercises != null)
         {
             <RadzenDataGrid Data="@workoutExercises" TItem="WorkoutExercise">
@@ -46,7 +52,11 @@
 }
 else
 {
-    <p>Day not found.</p>
+    <RadzenRow Style="padding:100px">
+        <div style="margin:auto; text-align:center;">
+            <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Primary" Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+        </div>
+    </RadzenRow>
 }
 
 @code {
