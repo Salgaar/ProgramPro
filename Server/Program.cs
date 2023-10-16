@@ -3,8 +3,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using ProgramPro.Server.Data;
-using ProgramPro.Shared.Models;
 using Newtonsoft.Json;
+using Microsoft.Extensions.Options;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using ProgramPro.Shared.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,7 +14,10 @@ var builder = WebApplication.CreateBuilder(args);
 var programProConnectionstring = builder.Configuration.GetConnectionString("DbContext") ?? throw new InvalidOperationException("Connection string 'ProgramProDb' not found.");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(programProConnectionstring));
+{
+    options.ConfigureWarnings(warnings => warnings.Throw(RelationalEventId.MultipleCollectionIncludeWarning));
+    options.UseSqlServer(programProConnectionstring);
+});
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 

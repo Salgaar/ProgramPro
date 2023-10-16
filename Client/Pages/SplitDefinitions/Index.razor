@@ -1,0 +1,92 @@
+﻿@page "/SplitDefinitions"
+@inject NavigationManager Nav
+@inject NotificationService NotificationService
+@inject HttpClient Http
+
+
+<RadzenRow>
+    <RadzenColumn>
+        <RadzenCard Variant="Variant.Text" Style="margin:10px; border-radius: 0px;">
+            <RadzenButton Click=@(args => MakeNewSplitDefinition()) Text="Create New" Icon="add_circle_outline" ButtonStyle="ButtonStyle.Success" />
+            <RadzenButton Click=@(args => DeleteAllSplitDefinition()) Text="DeleteAll" Icon="add_circle_outline" ButtonStyle="ButtonStyle.Danger" />
+        </RadzenCard>
+    </RadzenColumn>
+</RadzenRow>
+
+<RadzenRow>
+    <RadzenColumn>
+        <RadzenDataList WrapItems="false" PageSize="5" AllowPaging="true" Data="@splitDefinitions" TItem="SplitDefinition">
+            <Template Context="splitDefinition">
+                <RadzenRow>
+                    <RadzenColumn Size="3">
+                        <RadzenText TextStyle="TextStyle.H5">@splitDefinition.Name</RadzenText>
+                    </RadzenColumn>
+                    <RadzenColumn>
+                        <RadzenText TextStyle="TextStyle.Overline">Description</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body1">@splitDefinition.Description</RadzenText>
+                    </RadzenColumn>
+                    <RadzenColumn>
+                        <RadzenText TextStyle="TextStyle.Overline">Day Count</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body1">@splitDefinition.DayDefinitions.Count</RadzenText>
+                    </RadzenColumn>
+
+                    <RadzenColumn>
+                        <RadzenButton Click="@(() => EditSplitDefinition(splitDefinition.Id))">Edit</RadzenButton>
+                    </RadzenColumn>
+                </RadzenRow>
+            </Template>
+        </RadzenDataList>
+    </RadzenColumn>
+</RadzenRow>
+
+@code {
+    bool allowVirtualization = false;
+    private List<SplitDefinition> splitDefinitions = new List<SplitDefinition>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            splitDefinitions = await Http.GetFromJsonAsync<List<SplitDefinition>>("api/SplitDefinitions");
+            StateHasChanged();
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+
+    private void EditSplitDefinition(int id)
+    {
+        Nav.NavigateTo($"/SplitDefinitions/Edit/{id}");
+    }
+
+    private async Task MakeNewSplitDefinition()
+    {
+        var result = await Http.PostAsJsonAsync("api/SplitDefinitions", new SplitDefinition { Name = "New Split", DaysInASplit = 7 });
+        if (result.IsSuccessStatusCode)
+        {
+            var splitDefinition = await result.Content.ReadFromJsonAsync<SplitDefinition>();
+            Nav.NavigateTo($"/SplitDefinitions/Edit/{splitDefinition.Id}");
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = result.ReasonPhrase, Duration = 20000 });
+        }
+    }
+
+    private async Task DeleteAllSplitDefinition()
+    {
+        var result = await Http.DeleteAsync("api/SplitDefinitions");
+        if (result.IsSuccessStatusCode)
+        {
+            splitDefinitions = new List<SplitDefinition>();
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Success", Detail = "Programs Deleted", Duration = 20000 });
+            StateHasChanged();
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = result.ReasonPhrase, Duration = 20000 });
+        }
+    }
+}

@@ -1,16 +1,16 @@
-﻿@page "/Programs/Edit/{Id}"
+﻿@page "/SplitDefinitions/Edit/{Id}"
 @inject HttpClient Http
 @inject DialogService DialogService
 @inject NotificationService NotificationService
 
 <div class="rz-m-12">
     <RadzenBreadCrumb>
-        <RadzenBreadCrumbItem Path="/Programs" Text="Programs" />
+        <RadzenBreadCrumbItem Path="/SplitDefinitions" Text="SplitDefinitions" />
         <RadzenBreadCrumbItem Style="color:darkseagreen" Text="Edit" />
     </RadzenBreadCrumb>
 </div>
 
-@if (Program == null)
+@if (SplitDefinition == null)
 {
     <RadzenRow Style="padding:100px">
         <div style="margin:auto; text-align:center;">
@@ -32,38 +32,34 @@ else
                     <RadzenColumn Size="6">
 
                         <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H3">Name</RadzenText>
-                        <RadzenTextBox @bind-Value="Program.Name" class="w-100" />
+                        <RadzenTextBox @bind-Value="SplitDefinition.Name" class="w-100" />
 
                     </RadzenColumn>
                     <RadzenColumn Size="6">
 
                         <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H3">Description</RadzenText>
-                        <RadzenTextArea @bind-Value="Program.Description" class="w-100" />
+                        <RadzenTextArea @bind-Value="SplitDefinition.Description" class="w-100" />
 
-                    </RadzenColumn>
-                    <RadzenColumn>
-                        <RadzenText Text="Start Date" />
-                        <RadzenDatePicker DateFormat="d" @bind-Value="@Program.StartDate" class="w-100" />
                     </RadzenColumn>
                 </RadzenRow>
             </RadzenCard>
             
         </RadzenColumn>
     </RadzenRow>
-    <Calendar Program=@Program />
+    <SplitDefinitionCalendar SplitDefinition=@SplitDefinition />
 }
 
 
 @code {
     [Parameter] 
     public string Id { get; set; }
-    public TrainingProgram Program { get; set; }
+    public SplitDefinition SplitDefinition { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            Program = await Http.GetFromJsonAsync<TrainingProgram>($"api/Trainingprograms/{Id}");
+            SplitDefinition = await Http.GetFromJsonAsync<SplitDefinition>($"api/SplitDefinitions/{Id}");
             StateHasChanged();
         }
         catch (AccessTokenNotAvailableException exception)
@@ -74,10 +70,10 @@ else
 
     private async Task Save()
     {
-        var response = await Http.PutAsJsonAsync($"api/Trainingprograms/{Program.Id}", Program);
+        var response = await Http.PutAsJsonAsync($"api/SplitDefinitions/{SplitDefinition.Id}", SplitDefinition);
         if (response.IsSuccessStatusCode)
         {
-            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Program changes saved", Detail = "", Duration = 5000 });
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "SplitDefinition changes saved", Detail = "", Duration = 5000 });
         }
         else
         {

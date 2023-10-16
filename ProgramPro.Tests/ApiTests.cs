@@ -21,7 +21,7 @@ namespace IntegrationTests
         public async Task CanCreateNewTrainingProgram()
         {
             // Act
-            var response = await _client.PostAsJsonAsync("api/Trainingprograms", new TrainingProgram { Name = "New Program", DaysInASplit = 7, SplitNumber = 1, StartDate = DateTime.Now });
+            var response = await _client.PostAsJsonAsync("api/Trainingprograms", new TrainingProgram { Name = "New Program", StartDate = DateTime.Now });
 
             // Assert
             response.EnsureSuccessStatusCode(); // Ensure the HTTP request was successful (status code 200-299).

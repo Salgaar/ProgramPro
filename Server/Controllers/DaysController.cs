@@ -24,11 +24,24 @@ namespace ProgramPro.Server.Controllers
             _context = context;
         }
 
-        // GET: api/Days
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Day>>> GetDays(int trainingProgramId)
+        // GET: api/Days/GetDays/5
+        [HttpGet("{trainingProgramId}/GetDays")]
+        public async Task<ActionResult<string>> GetDays(int splitId)
         {
-            return await _context.Days.Where(x => x.TrainingprogramId == trainingProgramId).ToListAsync();
+            var days = _context.Days
+                .Where(x => x.SplitId == splitId);
+
+            foreach(var day in days)
+            {
+                await _context.Entry(day)
+                    .Collection(x => x.WorkoutExercises)
+                    .Query()
+                    .Include(x => x.Sets)
+                    .Include(x => x.Exercise)
+                    .LoadAsync();
+            }
+
+            return JsonConvert.SerializeObject(days, Extensions.JsonOptions.jsonSettings);
         }
 
         // GET: api/Days/5
@@ -36,11 +49,19 @@ namespace ProgramPro.Server.Controllers
         public async Task<ActionResult<string>> GetDay(int id)
         {
             var day = await _context.Days
-                .Include(x => x.WorkoutExercises).ThenInclude(x => x.Sets)
-                .Include(x => x.WorkoutExercises).ThenInclude(x => x.Exercise)
+                .Include(x => x.Split)
                 .FirstOrDefaultAsync(x => x.Id == id);
 
-            if (day == null)
+            if (day != null)
+            {
+                await _context.Entry(day)
+                    .Collection(x => x.WorkoutExercises)
+                    .Query()
+                    .Include(x => x.Sets)
+                    .Include(x => x.Exercise)
+                    .LoadAsync();
+            }
+            else
             {
                 return NotFound();
             }
@@ -86,17 +107,81 @@ namespace ProgramPro.Server.Controllers
         {
             if (ModelState.IsValid)
             {
+                var split = await _context.Splits.FindAsync(day.SplitId);
+
+                var program = await _context.TrainingPrograms
+                    .FirstOrDefaultAsync(x => x.Id == split.TrainingProgramId);
+
+                await _context.Entry(program)
+                    .Collection(x => x.Splits)
+                    .Query()
+                    .Include(x => x.Days)
+                    .LoadAsync();
+
+                var splits = program.Splits.Where(x => x.SplitNumber > split.SplitNumber).ToList();
+                if(splits != null)
+                {
+                    foreach (var itemSplit in splits)
+                    {
+                        foreach (var itemDay in itemSplit.Days)
+                        {
+                            itemDay.Date = itemDay.Date.AddDays(1);
+                            _context.Days.Update(itemDay);
+                        }
+                    }
+                }
+
                 _context.Days.Add(day);
                 await _context.SaveChangesAsync();
 
-                return CreatedAtAction("GetDay", new { id = day.Id }, day);
+                return CreatedAtAction("GetDay", new { id = day.Id }, JsonConvert.SerializeObject(day, Extensions.JsonOptions.jsonSettings));
             }
             else
             {
                 return BadRequest(ModelState);
             }
+        }
 
+        // POST: api/Days
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPost("PostDays")]
+        public async Task<ActionResult<List<Day>>> PostDays(List<Day> days)
+        {
+            if (ModelState.IsValid)
+            {
+                var split = await _context.Splits.FindAsync(days[0].SplitId);
 
+                var program = await _context.TrainingPrograms
+                    .FirstOrDefaultAsync(x => x.Id == split.TrainingProgramId);
+
+                await _context.Entry(program)
+                    .Collection(x => x.Splits)
+                    .Query()
+                    .Include(x => x.Days)
+                    .LoadAsync();
+
+                var splits = program.Splits.Where(x => x.SplitNumber > split.SplitNumber).ToList();
+                if (splits != null)
+                {
+                    foreach (var itemSplit in splits)
+                    {
+                        foreach (var itemDay in itemSplit.Days)
+                        {
+                            itemDay.Date = itemDay.Date.AddDays(1);
+                            _context.Days.Update(itemDay);
+                        }
+                    }
+                }
+
+                _context.Days.AddRange(days);
+                await _context.SaveChangesAsync();
+
+                return CreatedAtAction("PostDays", new { trainingProgramId = days[0].Split.TrainingProgramId }, JsonConvert.SerializeObject(days, Extensions.JsonOptions.jsonSettings));
+            }
+            else
+            {
+                return BadRequest(ModelState);
+            }
         }
 
         // DELETE: api/Days/5

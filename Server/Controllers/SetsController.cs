@@ -54,6 +54,13 @@ namespace ProgramPro.Server.Controllers
                 return BadRequest();
             }
 
+            if (!ModelState.IsValid)
+            {
+                ModelState.AddModelError(string.Empty,
+                     "Unable to post set because modelstate was invalid");
+                return BadRequest(ModelState);
+            }
+
             _context.Entry(@set).State = EntityState.Modified;
 
             try

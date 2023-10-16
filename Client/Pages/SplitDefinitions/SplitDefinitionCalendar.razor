@@ -1,0 +1,164 @@
+﻿@inject NavigationManager NavManager
+@inject HttpClient Http
+@inject NotificationService NotificationService
+
+
+<RadzenCard>
+    <RadzenRow>
+        <RadzenColumn>
+            <RadzenText Text="Days in a Split(include rest days)" />
+            <RadzenNumeric @bind-Value="@SplitDefinition.DaysInASplit" class="w-100" />
+        </RadzenColumn>
+    </RadzenRow>
+</RadzenCard>
+
+
+
+
+@{
+    double divide = (double)SplitDefinition.DaysInASplit / 5;
+    double timesToRun = Math.Ceiling(divide);
+}
+<div class="calendar">
+    @{
+        int daysRan = 0;
+    }
+        
+        <div>
+        @for (int i = 0; i < timesToRun && daysRan < SplitDefinition.DaysInASplit; i++)
+            {
+                <div class="split">
+                    <div class="days">
+                    @for (int day = 1; day <= 5 && daysRan < SplitDefinition.DaysInASplit; day++, daysRan++)
+                        {
+                        int theDay = daysRan + 1;
+                        <div class="day" @onclick="async() => await AddDay(theDay)">
+                                <div class="day-number">
+                                    @(daysRan + 1)
+                                </div>
+
+                            @foreach (var item in SplitDefinition.DayDefinitions)
+                                {
+                                    if (item.Number == daysRan + 1)
+                                    {
+                                    if (item.WorkoutExerciseDefinitions.Count == 0)
+                                        {
+                                            <p>empty training day</p>
+                                        }
+                                        else
+                                        {
+                                        @foreach (var workoutExercise in item.WorkoutExerciseDefinitions)
+                                            {
+                                            <p style="margin-bottom:5px">@workoutExercise.Exercise.Name: @workoutExercise.SetDefinitions.Count sets</p>
+                                            }
+                                        }
+                                    }
+                                }
+                            </div>
+
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    
+</div>
+
+@code {
+    [Parameter]
+    public SplitDefinition SplitDefinition { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+
+    private async Task AddDay(int dayNumber)
+    {
+        bool createNew = true;
+        foreach (var item in SplitDefinition.DayDefinitions)
+        {
+            if (item.Number == dayNumber)
+            {
+                createNew = false;
+                NavManager.NavigateTo($"/DayDefinitions/Edit/{item.Id}");
+                break;
+            }
+        }
+        if (createNew == true)
+        {
+            var result = await Http.PostAsJsonAsync("api/DayDefinitions", new DayDefinition { Number = dayNumber, SplitDefinitionId = SplitDefinition.Id });
+            if (result.IsSuccessStatusCode)
+            {
+                var day = await result.Content.ReadFromJsonAsync<DayDefinition>();
+                NavManager.NavigateTo($"/DayDefinitions/Edit/{day.Id}");
+            }
+            else
+            {
+                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = result.ReasonPhrase, Duration = 20000 });
+            }
+        }
+    }
+}
+
+<style>
+    .calendar {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        background-color: #38474e; /* Brug websites baggrundsfarve */
+        color: #fff;
+        margin-top:20px;
+        padding-top:10px;
+    }
+
+    .split {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .split-number {
+        font-weight: bold;
+        width: 100%;
+        font-size:20px;
+        text-align: center;
+        padding: 20px;/* Tilpas farven til uger */
+    }
+
+    .days {
+        display: flex;
+        flex-grow: 1;
+        padding-left:5px;
+        padding-right:5px;
+    }
+
+    .day {
+        width: calc(100% / 5);
+        border: 1px solid #78909c; /* Tilpas farven til dage */
+        padding: 5px;
+        margin-left:5px;
+        margin-right:5px;
+        cursor: pointer;
+        height: auto;
+        min-height:75px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        background-color: #28363c;
+    }
+
+    .day-number {
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+</style>

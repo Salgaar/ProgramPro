@@ -1,0 +1,115 @@
+﻿@page "/WorkoutExerciseDefinitions/Edit/{Id:int}"
+@inject HttpClient Http
+@inject DialogService DialogService
+@inject NavigationManager NavManager
+@inject NotificationService NotificationService
+@using System.Linq.Dynamic.Core
+
+<div class="rz-m-12">
+    <RadzenBreadCrumb>
+        <RadzenBreadCrumbItem Text="Split Definitions" />
+        <RadzenBreadCrumbItem Text="Edit Split Definition" />
+        <RadzenBreadCrumbItem Path="@dayDefinitionCrumb" Text="Edit Day Definition" />
+        <RadzenBreadCrumbItem Style="color:darkseagreen" Text="Edit Workout Exercise Definition" />
+    </RadzenBreadCrumb>
+</div>
+
+@if(workoutExerciseDefinition != default)
+{
+    <RadzenRow>
+        <RadzenColumn>
+            <RadzenDropDown TValue="int" @bind-Value="exerciseId" Data="@exercises" TextProperty="Name" ValueProperty="Id" Change=@OnChange />
+        </RadzenColumn>
+    </RadzenRow>
+    
+          <RadzenRow Style="margin-top:20px;margin-bottom:20px;">
+        <RadzenButton Click="() => AddSetDefinition()">Add Set Definition</RadzenButton>
+          </RadzenRow>
+
+
+    <RadzenDataGrid Data="@setDefinitions" TItem="SetDefinition">
+        <Columns>
+            <RadzenDataGridColumn TItem="SetDefinition" Property="Weight" Title="Weight" />
+            <RadzenDataGridColumn TItem="SetDefinition" Property="Reps" Title="Reps" />
+            <RadzenDataGridColumn TItem="SetDefinition" Property="RPE" Title="RPE" />
+            <RadzenDataGridColumn TItem="SetDefinition" Property="RIR" Title="RIR" />
+            <RadzenDataGridColumn TItem="SetDefinition" Property="PercentageOfOneRepMax" Title="Percentage" />
+            <RadzenDataGridColumn TItem="SetDefinition" Property="Type" Title="Type" />
+            <RadzenDataGridColumn TItem="SetDefinition">
+                <Template Context="setDefinition">
+                    <RadzenButton Icon="edit" Size="ButtonSize.Small" Click="@(async args => await EditSetDefinition(setDefinition))" />
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+}
+else
+{
+    <RadzenRow Style="padding:100px">
+        <div style="margin:auto; text-align:center;">
+            <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Primary" Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+        </div>
+    </RadzenRow>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    private WorkoutExerciseDefinition workoutExerciseDefinition = new WorkoutExerciseDefinition();
+    private IEnumerable<SetDefinition> setDefinitions;
+    private IEnumerable<Exercise> exercises;
+    private int exerciseId;
+    string dayDefinitionCrumb = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            exercises = await Http.GetFromJsonAsync<List<Exercise>>($"api/Exercises");
+            workoutExerciseDefinition = await Http.GetFromJsonAsync<WorkoutExerciseDefinition>($"api/WorkoutExerciseDefinitions/{Id}");
+            setDefinitions = workoutExerciseDefinition.SetDefinitions;
+            exerciseId = workoutExerciseDefinition.ExerciseId;
+            dayDefinitionCrumb = $"/DayDefinitions/Edit/{workoutExerciseDefinition.DayDefinitionId}";
+            StateHasChanged();
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+
+    private async Task EditSetDefinition(SetDefinition setDefinition)
+    {
+        await DialogService.OpenAsync<ProgramPro.Client.Pages.SetDefinitions.CreateOrEdit>($"Edit Set Definition",
+            new Dictionary<string, object>() { { "Set Definition", setDefinition } },
+            new DialogOptions() { Width = "400px", Height = "512px", Resizable = true, Draggable = true });
+    }
+
+    async Task OnChange()
+    {
+        workoutExerciseDefinition.ExerciseId = exerciseId;
+        var response = await Http.PutAsJsonAsync($"api/WorkoutExerciseDefinitions/{Id}", workoutExerciseDefinition);
+        if (response.IsSuccessStatusCode)
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Updated Workout Exercise Definition", Detail = "", Duration = 5000 });
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Failed To Update Workout Exercise Definition", Detail = response.ReasonPhrase, Duration = 5000 });
+        }
+    }
+
+    private async Task AddSetDefinition()
+    {
+        var setDefinition = await DialogService.OpenAsync<ProgramPro.Client.Pages.SetDefinitions.CreateOrEdit>($"Add Set Definition",
+            new Dictionary<string, object>() { { "WorkoutExerciseDefinitionId", workoutExerciseDefinition.Id } },
+            new DialogOptions() { Width = "400px", Height = "512px", Resizable = true, Draggable = true });
+        if ((SetDefinition)setDefinition != default)
+        {
+            List<SetDefinition> newSets = setDefinitions == null ? new List<SetDefinition>() : setDefinitions.ToList();
+            newSets.Add((SetDefinition)setDefinition);
+            setDefinitions = newSets;
+            StateHasChanged();
+        }
+    }
+}

@@ -1,86 +1,96 @@
 ﻿@inject NavigationManager NavManager
 @inject HttpClient Http
 @inject NotificationService NotificationService
+@inject ContextMenuService ContextMenuService
+@inject DialogService DialogService
 
-
-<RadzenCard>
-    <RadzenRow>
-        <RadzenColumn>
-            <RadzenText Text="Days in a Split(include rest days)" />
-            <RadzenNumeric @bind-Value="@Program.DaysInASplit" class="w-100" />
-        </RadzenColumn>
-        <RadzenColumn>
-            <RadzenText Text="Split Number" />
-            <RadzenNumeric @bind-Value="@Program.SplitNumber" class="w-100" />
-        </RadzenColumn>
-        <RadzenColumn>
-            <RadzenText Text="Start Date" />
-            <RadzenDatePicker DateFormat="d" @bind-Value="@Program.StartDate" class="w-100" />
-        </RadzenColumn>
-    </RadzenRow>
-</RadzenCard>
+<RadzenRow Style="margin-top:10px;margin-bottom:10px;">
+    <RadzenColumn>
+        <RadzenButton Text="Add Split" Click="AddSplit" />
+    </RadzenColumn>
+</RadzenRow>
 
 
 
-
-@{
-    double divide = (double)Program.DaysInASplit / 7;
-    double timesToRun = Math.Ceiling(divide);
-}
+@foreach (Split split in splits)
+        {
 <div class="calendar">
-    @for (int split = 1; split <= Program.SplitNumber; split++)
-    {
-        int daysRan = 0;
-        <div>
-            <div class="split-number">
-                Split @split
-            </div>
-            @for (int i = 0; i < timesToRun && daysRan < Program.DaysInASplit; i++)
-            {
-                <div class="split">
-                    <div class="days">
-                        @for (int day = 1; day <= 7 && daysRan < Program.DaysInASplit; day++, daysRan++)
-                        {
-                            int dayNumber = (split - 1) * Program.DaysInASplit + daysRan + 1;
-                            var realDay = Program.StartDate.AddDays(dayNumber - 1);
+            @{
+            double divide = (double)split.Days.Count / 5;
+            double timesToRun = Math.Ceiling(divide);
+            int daysRan = 0;
+            }
 
-                            <div class="day" @onclick="() => AddDay(realDay)">
-                                <div class="day-number">
-                                    @realDay.Day : @realDay.DayOfWeek
-                                </div>
-                                @foreach (var item in Program.Days)
+            <div>
+                <div class="split-number">
+                    Split @split.SplitNumber
+                </div>
+            <RadzenRow Style="padding:10px; margin-bottom:20px;">
+                <RadzenColumn>
+                    <RadzenText Text="Name" />
+                    <RadzenNumeric @bind-Value="@split.Name" class="w-100" />
+                </RadzenColumn>
+                <RadzenColumn>
+                    <RadzenText Text="Description" />
+                    <RadzenNumeric @bind-Value="@split.Description" class="w-100" />
+                </RadzenColumn>
+                <RadzenColumn>
+                    <RadzenButton Text="Add Day" Click=@((args) => NewDayClickedMenu(args, splits, split)) />
+                </RadzenColumn>
+            </RadzenRow>
+                @if (split.Days.Count > 0)
+                {
+                    @for (int i = 0; i < timesToRun && daysRan < split.Days.Count; i++)
+                    {
+                        <div class="split">
+
+                            <div class="days">
+                                @for (int k = 1; k <= 5 && daysRan < split.Days.Count; k++, daysRan++)
                                 {
-                                    if (item.Date.ToShortDateString() == realDay.ToShortDateString())
-                                    {
-                                        @foreach (var workoutExercise in item.WorkoutExercises)
+                                    var day = split.Days.ToList()[daysRan];
+
+                                    <div class="day" @onclick="(args) => DayClickedMenu(args, day)">
+                                        <div class="day-number">
+                                            @day.Date.Day : @day.Date.DayOfWeek
+                                        </div>
+                                        @if (day.WorkoutExercises.Count == 0)
                                         {
-                                            <p style="margin-bottom:5px">@workoutExercise.Exercise.Name: @workoutExercise.Sets.Count sets</p>
+                                            <p>empty training day</p>
                                         }
-                                        if (item.WorkoutExercises.Count == 0)
+                                        else
                                         {
-                                            <p>Training day is Empty</p>
+                                            @foreach (var workoutExercise in day.WorkoutExercises)
+                                            {
+                                                <p style="margin-bottom:5px">@workoutExercise.Exercise.Name: @workoutExercise.Sets.Count sets</p>
+                                            }
                                         }
-                                    }
+                                    </div>
                                 }
                             </div>
 
-                        }
-                    </div>
-                </div>
-            }
-        </div>
-    }
+                        </div>
+                    }
+                }
+            </div>
+    
+    
+
+    
 </div>
+}
+
+
 
 @code {
     [Parameter]
     public TrainingProgram Program { get; set; }
+    public List<Split> splits = new List<Split>();
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-
+            splits = Program.Splits.OrderBy(x => x.SplitNumber).ToList();
         }
         catch (AccessTokenNotAvailableException exception)
         {
@@ -88,31 +98,230 @@
         }
     }
 
-    private async Task AddDay(DateTime date)
+    private async Task AddSplit()
     {
-        bool createNew = true;
-        foreach (var item in Program.Days)
+        Split split = new Split { Name = "New Split", Description = "", SplitNumber = Program.Splits.Count + 1, TrainingProgramId = Program.Id, Days = new List<Day>() };
+        var response = await Http.PostAsJsonAsync("api/Splits", split);
+        if (response.IsSuccessStatusCode)
         {
-            if (item.Date.ToShortDateString() == date.ToShortDateString())
+            var dbSplit = await response.Content.ReadFromJsonAsync<Split>();
+            splits.Add(dbSplit);
+            splits = splits.OrderBy(x => x.SplitNumber).ToList();
+            StateHasChanged();
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Success", Detail = "Added Split", Duration = 20000 });
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error adding split", Detail = response.ReasonPhrase, Duration = 20000 });
+        }
+    }
+
+    private async Task DeleteDay(Day day)
+    {
+        var response = await Http.DeleteAsync($"api/Days/{day.Id}");
+        if (response.IsSuccessStatusCode)
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Success", Detail = "Deleted Day", Duration = 20000 });
+            var splits = await Http.GetFromJsonAsync<List<Split>>($"api/Splits");
+            this.splits = splits.OrderBy(x => x.SplitNumber).ToList();
+            StateHasChanged();
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = response.ReasonPhrase, Duration = 20000 });
+        }
+    }
+
+    private DateTime GetNewDayDate(Split split, List<Split> splits)
+    {
+        List<Day> days = split.Days.ToList();
+        DateTime newDate = default;
+        if(days.Count > 0)
+        {
+            newDate = days[0].Date;
+            for (int i = 1; i < days.Count; i++)
             {
-                createNew = false;
-                NavManager.NavigateTo($"/Days/Edit/{item.Id}");
-                break;
+                if (newDate < days[i].Date)
+                {
+                    newDate = days[i].Date;
+                }
+            }
+            return newDate.AddDays(1);
+        }
+        else
+        {
+            for(int i = 1; i < splits.Count; i++)
+            {
+                var earlierSplit = splits.FirstOrDefault(x => x.SplitNumber == split.SplitNumber - i);
+                if(earlierSplit != null)
+                {
+                    days = earlierSplit.Days.ToList();
+                    if (days.Count > 0)
+                    {
+                        newDate = days[0].Date;
+                        for (int j = 1; j < days.Count; j++)
+                        {
+                            if (newDate < days[j].Date)
+                            {
+                                newDate = days[j].Date;
+                            }
+                        }
+                        return newDate.AddDays(1);
+                    }
+                }
+            }
+            newDate = Program.StartDate;
+            return newDate;
+        }
+    }
+
+    /// <summary>
+    /// Adds a day to a split
+    /// </summary>
+    /// <param name="day"></param>
+    /// <returns></returns>
+
+    private async Task AddDay(Split split, List<Split> splits)
+    {
+        var newDate = GetNewDayDate(split, splits);
+        var result = await Http.PostAsJsonAsync("api/Days", new Day { Date = newDate, SplitId = split.Id });
+        if (result.IsSuccessStatusCode)
+        {
+            var day = await result.Content.ReadFromJsonAsync<Day>();
+            NavManager.NavigateTo($"/Days/Edit/{day.Id}");
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = result.ReasonPhrase, Duration = 20000 });
+        }
+    }
+
+    void DayClickedMenu(MouseEventArgs args, Day day)
+    {
+        ContextMenuService.Open(args,
+            new List<ContextMenuItem> {
+                new ContextMenuItem(){ Text = "Edit Day", Value = new MenuItemValue { Day = day, Choice = 1 } },
+                new ContextMenuItem(){ Text = "Delete Day", Value = new MenuItemValue { Day = day, Choice = 2 } }
+                                 }, DayMenuClicked);
+    }
+
+    void DayMenuClicked(MenuItemEventArgs args)
+    {
+        ContextMenuService.Close();
+        var value = args.Value as MenuItemValue;
+        if (value.Choice == 1)
+        {
+            NavManager.NavigateTo($"/Days/Edit/{value.Day.Id}");
+        }
+        else if (value.Choice == 2)
+        {
+            DeleteDay(value.Day).ConfigureAwait(false);
+        }
+    }
+
+    void NewDayClickedMenu(MouseEventArgs args, List<Split> splits, Split split)
+    {
+        ContextMenuService.Open(args,
+            new List<ContextMenuItem> {
+                new ContextMenuItem(){ Text = "Add Day", Value = new MenuItemValue { Split = split, Splits = splits, Choice = 1 } },
+                new ContextMenuItem(){ Text = "Add Split", Value = new MenuItemValue { Split = split, Splits = splits, Choice = 2 } }
+                                         }, NewDayMenuClicked);
+    }
+
+    void NewDayMenuClicked(MenuItemEventArgs args)
+    {
+        ContextMenuService.Close();
+        var value = args.Value as MenuItemValue;
+        if (value.Choice == 1)
+        {
+            AddDay(value.Split, value.Splits).ConfigureAwait(false);
+        }
+        else if (value.Choice == 2)
+        {
+            SelectSplitDefinition(value.Split, value.Splits).ConfigureAwait(false);
+        }
+    }
+
+    async Task SelectSplitDefinition(Split split, List<Split> splits)
+    {
+        var splitDefinitions = await Http.GetFromJsonAsync<List<SplitDefinition>>("api/SplitDefinitions");
+        if (splitDefinitions == null)
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Could not get split definitions", Detail = "", Duration = 5000 });
+        }
+        else if (splitDefinitions.Count == 0)
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "You have not created any split definitions yet", Detail = "", Duration = 5000 });
+        }
+        else
+        {
+            var result = await DialogService.OpenAsync<ProgramPro.Client.Pages.SplitDefinitions.SelectSplitDefinition>($"Select Split Definition",
+                new Dictionary<string, object>() { { "SplitDefinitions", splitDefinitions } },
+                new DialogOptions() { Width = "400px", Height = "512px", Resizable = true, Draggable = true });
+            if (result as SplitDefinition != default)
+            {
+                List<Day> daysFromSplitDefinition = new List<Day>();
+                var splitDefinition = result as SplitDefinition;
+                var dayDefinitions = splitDefinition.DayDefinitions.ToList();
+                var date = GetNewDayDate(split, splits);
+                for (int i = 0; i < dayDefinitions.Count; i++)
+                {
+                    var newDay = new Day()
+                        {
+                            Date = date.AddDays(dayDefinitions[i].Number - 1),
+                            WorkoutExercises = new List<WorkoutExercise>(),
+                            SplitId = split.Id
+                        };
+                    var workoutExerciseDefinitions = dayDefinitions[i].WorkoutExerciseDefinitions.ToList();
+                    for (int j = 0; j < workoutExerciseDefinitions.Count; j++)
+                    {
+                        var workoutExercise = new WorkoutExercise()
+                            {
+                                ExerciseId = workoutExerciseDefinitions[j].ExerciseId,
+                                Sets = new List<Set>()
+                            };
+                        var setDefinitions = workoutExerciseDefinitions[j].SetDefinitions.ToList();
+                        for (int k = 0; k < setDefinitions.Count; k++)
+                        {
+                            workoutExercise.Sets.Add(new Set
+                                {
+                                    PercentageOfOneRepMax = setDefinitions[k].PercentageOfOneRepMax,
+                                    Reps = setDefinitions[k].Reps,
+                                    RIR = setDefinitions[k].RIR,
+                                    RPE = setDefinitions[k].RPE,
+                                    Type = setDefinitions[k].Type,
+                                    UsingPercentageOfOneRepMax = setDefinitions[k].UsingPercentageOfOneRepMax,
+                                    UsingRIR = setDefinitions[k].UsingRIR,
+                                    UsingRPE = setDefinitions[k].UsingRPE,
+                                    Weight = setDefinitions[k].Weight,
+                                });
+                        }
+                        newDay.WorkoutExercises.Add(workoutExercise);
+                    }
+                    daysFromSplitDefinition.Add(newDay);
+                }
+                var response = await Http.PostAsJsonAsync("api/Days/PostDays", daysFromSplitDefinition);
+                if (response.IsSuccessStatusCode)
+                {
+                    NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Split Definition added to the program", Detail = "", Duration = 5000 });
+                    var dbSplits = await Http.GetFromJsonAsync<List<Split>>($"api/Splits");
+                    this.splits = dbSplits.OrderBy(x => x.SplitNumber).ToList();
+                    StateHasChanged();
+                }
+                else
+                {
+                    NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = response.ReasonPhrase, Duration = 5000 });
+                }
             }
         }
-        if (createNew == true)
-        {
-            var result = await Http.PostAsJsonAsync("api/Days", new Day { Date = date, TrainingprogramId = Program.Id });
-            if (result.IsSuccessStatusCode)
-            {
-                var day = await result.Content.ReadFromJsonAsync<Day>();
-                NavManager.NavigateTo($"/Days/Edit/{day.Id}");
-            }
-            else
-            {
-                NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = result.ReasonPhrase, Duration = 20000 });
-            }
-        }
+    }
+
+    private class MenuItemValue
+    {
+        public Day Day { get; set; }
+        public Split Split { get; set; }
+        public List<Split> Splits { get; set; }
+        public int Choice { get; set; }
     }
 }
 
@@ -121,38 +330,57 @@
         width: 100%;
         display: flex;
         flex-direction: column;
+        background-color: #38474e; /* Brug websites baggrundsfarve */
+        color: #fff;
+        margin-top: 20px;
+        box-shadow: var(--rz-card-shadow);
+        border-radius: 5px;
     }
 
     .split {
         display: flex;
-        flex-direction: row; /* Display days horizontally within a week */
+        flex-direction: row;
         align-items: center;
-        margin-bottom: 10px; /* Separate weeks */
+        margin-bottom: 10px;
     }
 
     .split-number {
         font-weight: bold;
-        width: 10%; /* Fixed width for week numbers */
+        width: 100%;
+        font-size: 20px;
         text-align: center;
+        padding: 20px; /* Tilpas farven til uger */
     }
 
     .days {
         display: flex;
-        flex-grow: 1; /* Days fill the remaining space */
-        /* justify-content: space-between; */ /* Fill the entire width */
+        flex-grow: 1;
+        padding-left: 5px;
+        padding-right: 5px;
     }
 
     .day {
-        width: calc(100% / 7); /* Equal width for each day */
-        border: 1px solid #ccc;
+        width: calc(100% / 5);
         padding: 5px;
+        margin-left: 5px;
+        margin-right: 5px;
         cursor: pointer;
         height: auto;
+        min-height: 75px;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: flex-start;
+        border: var(--rz-input-border);
+        border-radius: var(--rz-input-border-radius);
+        box-shadow: var(--rz-input-shadow);
+        background-color: var(--rz-input-background-color);
     }
+
+        .day:hover {
+            transition: background-color .2s ease-in;
+            background-color: darkseagreen;
+        }
 
     .day-number {
         font-weight: bold;

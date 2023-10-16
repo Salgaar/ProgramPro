@@ -1,4 +1,6 @@
-﻿namespace ProgramPro.Shared.Models
+﻿
+
+namespace ProgramPro.Shared.Models
 {
     public class BodyStatistics
     {

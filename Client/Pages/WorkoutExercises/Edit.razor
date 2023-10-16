@@ -10,13 +10,9 @@
         <RadzenBreadCrumbItem Text="Programs" />
         <RadzenBreadCrumbItem Text="Edit Program" />
         <RadzenBreadCrumbItem Path="@dayCrumb" Text="Edit Day" />
-        <RadzenBreadCrumbItem Style="color:darkseagreen" Text="Create WorkoutExercise" />
+        <RadzenBreadCrumbItem Style="color:darkseagreen" Text="Edit Workout Exercise" />
     </RadzenBreadCrumb>
 </div>
-
-<h4>Edit Workout Exercise</h4>
-
-
 
 @if(workoutExercise != default)
 {
@@ -25,10 +21,12 @@
             <RadzenDropDown TValue="int" @bind-Value="exerciseId" Data="@exercises" TextProperty="Name" ValueProperty="Id" Change=@OnChange />
         </RadzenColumn>
     </RadzenRow>
+    
+          <RadzenRow Style="margin-top:20px;margin-bottom:20px;">
+        <RadzenButton Click="() => AddSet()">Add Set</RadzenButton>
+          </RadzenRow>
 
-    <RadzenButton Click="() => AddSet()">Add Set</RadzenButton>
 
-    <RadzenText>Sets:</RadzenText>
     <RadzenDataGrid Data="@sets" TItem="Set">
         <Columns>
             <RadzenDataGridColumn TItem="Set" Property="Weight" Title="Weight" />
@@ -84,7 +82,7 @@ else
     {
         await DialogService.OpenAsync<ProgramPro.Client.Pages.Set.CreateOrEdit>($"Edit Set",
             new Dictionary<string, object>() { { "Set", set } },
-            new DialogOptions() { Width = "700px", Height = "512px", Resizable = true, Draggable = true });
+            new DialogOptions() { Width = "400px", Height = "512px", Resizable = true, Draggable = true });
     }
 
     async Task OnChange()
@@ -105,7 +103,7 @@ else
     {
         var set = await DialogService.OpenAsync<ProgramPro.Client.Pages.Set.CreateOrEdit>($"Add Set",
             new Dictionary<string, object>() { { "WorkoutExerciseId", workoutExercise.Id } },
-            new DialogOptions() { Width = "700px", Height = "512px", Resizable = true, Draggable = true });
+            new DialogOptions() { Width = "400px", Height = "512px", Resizable = true, Draggable = true });
         if((Set)set != default)
         {
             List<Set> newSets = sets == null ? new List<Set>() : sets.ToList();

@@ -8,8 +8,8 @@
     <RadzenColumn>
         <RadzenCard Variant="Variant.Text" Style="margin:10px; border-radius: 0px;">
             <RadzenButton Click=@(args => MakeNewProgram()) Text="Create New" Icon="add_circle_outline" ButtonStyle="ButtonStyle.Success" />
+            <RadzenButton Click=@(args => DeleteAllPrograms()) Text="DeleteAll" Icon="add_circle_outline" ButtonStyle="ButtonStyle.Danger" />
         </RadzenCard>
-
     </RadzenColumn>
 </RadzenRow>
 
@@ -31,16 +31,8 @@
                     </RadzenColumn>
                     <RadzenColumn>
                         <RadzenText TextStyle="TextStyle.Overline">Split Amount</RadzenText>
-                        <RadzenText TextStyle="TextStyle.Body1">@trainingProgram.SplitNumber</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body1">@trainingProgram.Splits.Count</RadzenText>
                     </RadzenColumn>
-                    <RadzenColumn>
-                        <RadzenText TextStyle="TextStyle.Overline">Days Per Split</RadzenText>
-                        <RadzenText TextStyle="TextStyle.Body1">@trainingProgram.DaysInASplit</RadzenText>
-                    </RadzenColumn>
-                   <RadzenColumn>
-                        <RadzenText TextStyle="TextStyle.Overline">Training Days</RadzenText>
-                        <RadzenText TextStyle="TextStyle.Body1">@trainingProgram.Days.Count</RadzenText>
-                   </RadzenColumn>
                    <RadzenColumn>
                        <RadzenButton Click="@(() => EditProgram(@trainingProgram.Id))">Edit</RadzenButton>
                    </RadzenColumn>
@@ -67,18 +59,33 @@
         }
     }
 
-    private void EditProgram(int id)
+    private void EditProgram(Guid id)
     {
         Nav.NavigateTo($"/Programs/Edit/{id}");
     }
 
     private async Task MakeNewProgram()
     {
-        var result = await Http.PostAsJsonAsync("api/Trainingprograms", new TrainingProgram { Name = "New Program", DaysInASplit = 7, SplitNumber = 1, StartDate = DateTime.Now });
+        var result = await Http.PostAsJsonAsync("api/Trainingprograms", new TrainingProgram { Name = "New Program", StartDate = DateTime.Now });
         if (result.IsSuccessStatusCode)
         {
             var program = await result.Content.ReadFromJsonAsync<TrainingProgram>();
             Nav.NavigateTo($"/Programs/Edit/{program.Id}");
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = result.ReasonPhrase, Duration = 20000 });
+        }
+    }
+
+    private async Task DeleteAllPrograms()
+    {
+        var result = await Http.DeleteAsync("api/Trainingprograms");
+        if (result.IsSuccessStatusCode)
+        {
+            programs = await Http.GetFromJsonAsync<List<TrainingProgram>>("api/Trainingprograms");
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Success", Detail = "Programs Deleted", Duration = 20000 });
+            StateHasChanged();
         }
         else
         {

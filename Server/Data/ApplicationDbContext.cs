@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using ProgramPro.Shared.Models;
+using ProgramPro.Shared.Models;
 using System.Reflection.Metadata;
 
 namespace ProgramPro.Server.Data
@@ -29,10 +30,101 @@ namespace ProgramPro.Server.Data
         public DbSet<PersonalRecord> PersonalRecords { get; set; }
         public DbSet<Set> Set { get; set; }
         public DbSet<WorkoutExercise> WorkoutExercises { get; set; }
+        public DbSet<SplitDefinition> SplitDefinitions { get; set; }
+        public DbSet<DayDefinition> DayDefinitions { get; set; }
+        public DbSet<WorkoutExerciseDefinition> WorkoutExerciseDefinitions { get; set; }
+        public DbSet<SetDefinition> SetDefinitions { get; set; }
+        public DbSet<Split> Splits { get; set; }
+
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<ApplicationUser>()
+                .HasMany(user => user.TrainingPrograms)
+                .WithOne(trainingProgram => trainingProgram.ApplicationUser)
+                .HasForeignKey(trainingProgram => trainingProgram.ApplicationUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ApplicationUser>()
+                .HasMany(user => user.SplitDefinitions)
+                .WithOne(splitDefinition => splitDefinition.ApplicationUser)
+                .HasForeignKey(splitDefinition => splitDefinition.ApplicationUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TrainingProgram>()
+                .HasMany(p => p.Goals)
+                .WithOne(c => c.TrainingProgram)
+                .HasForeignKey(x => x.TrainingProgramId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TrainingProgram>()
+                .HasMany(p => p.Splits)
+                .WithOne(c => c.TrainingProgram)
+                .HasForeignKey(x => x.TrainingProgramId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Split>()
+                .HasMany(p => p.Days)
+                .WithOne(c => c.Split)
+                .HasForeignKey(x => x.SplitId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Day>()
+                .HasMany(p => p.WorkoutExercises)
+                .WithOne(c => c.Day)
+                .HasForeignKey(x => x.DayId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ExerciseStatistics>()
+                .HasMany(p => p.PersonalRecords)
+                .WithOne(c => c.ExerciseStatistics)
+                .HasForeignKey(x => x.ExerciseStatisticsId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Statistics>()
+                .HasMany(p => p.ExerciseStatistics)
+                .WithOne(c => c.Statistics)
+                .HasForeignKey(x => x.StatisticsId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Statistics>()
+                .HasMany(p => p.BodyStatistics)
+                .WithOne(c => c.Statistics)
+                .HasForeignKey(x => x.StatisticsId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<WorkoutExercise>()
+                .HasMany(p => p.Sets)
+                .WithOne(c => c.WorkoutExercise)
+                .HasForeignKey(x => x.WorkoutExerciseId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Set>()
+                .HasMany(p => p.Entries)
+                .WithOne(c => c.Set)
+                .HasForeignKey(x => x.SetId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<SplitDefinition>()
+                .HasMany(p => p.DayDefinitions)
+                .WithOne(c => c.SplitDefinition)
+                .HasForeignKey(x => x.SplitDefinitionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<DayDefinition>()
+                .HasMany(p => p.WorkoutExerciseDefinitions)
+                .WithOne(c => c.DayDefinition)
+                .HasForeignKey(x => x.DayDefinitionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<WorkoutExerciseDefinition>()
+                .HasMany(p => p.SetDefinitions)
+                .WithOne(c => c.WorkoutExerciseDefinition)
+                .HasForeignKey(x => x.WorkoutExerciseDefinitionId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Exercise>().HasData(
                 new Exercise { Id = 1, Name = "Pull Up", Description = "Pull the chin over the bar" },

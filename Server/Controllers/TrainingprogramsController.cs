@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Threading.Tasks;
+using Humanizer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -31,24 +33,54 @@ namespace ProgramPro.Server.Controllers
         [HttpGet]
         public async Task<ActionResult<string>> GetTrainingprograms()
         {
-            var programs = await _context.TrainingPrograms
-                .Include(x => x.Days)
+            var programs = _context.TrainingPrograms;
                 /*.Where(x => x.ApplicationUserId == UserHelper.GetUserId(User))*/
-                .ToListAsync();
+
+            foreach (var program in programs)
+            {
+                await _context.Entry(program)
+                        .Collection(x => x.Splits)
+                        .Query()
+                        .Include(x => x.Days)
+                        .LoadAsync();
+            }
+
             return JsonConvert.SerializeObject(programs, Extensions.JsonOptions.jsonSettings);
         }
 
         // GET: api/Trainingprograms/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<string>> GetTrainingprogram(int id)
+        public async Task<ActionResult<string>> GetTrainingprogram(Guid id)
         {
+            // First, load the TrainingProgram
             var trainingprogram = await _context.TrainingPrograms
-                /*.Where(x => x.ApplicationUserId == UserHelper.GetUserId(User))*/
-                .Include(x => x.Days).ThenInclude(x => x.WorkoutExercises).ThenInclude(x => x.Sets)
-                .Include(x => x.Days).ThenInclude(x => x.WorkoutExercises).ThenInclude(x => x.Exercise)
-                .FirstOrDefaultAsync(x => x.Id == id);
+                .Where(x => x.Id == id)
+                .FirstOrDefaultAsync();
 
-            if (trainingprogram == null)
+            if (trainingprogram != null)
+            {
+                // Explicitly load the related data for the training program
+                await _context.Entry(trainingprogram)
+                    .Collection(x => x.Splits)
+                    .Query()
+                    .Include(x => x.Days)
+                    .LoadAsync();
+
+                // Load related data for WorkoutExercises, Sets, and Exercise
+                foreach (var split in trainingprogram.Splits)
+                {
+                    foreach(var day in split.Days)
+                    {
+                        await _context.Entry(day)
+                        .Collection(x => x.WorkoutExercises)
+                        .Query()
+                        .Include(x => x.Sets)
+                        .Include(x => x.Exercise)
+                        .LoadAsync();
+                    }
+                }
+            }
+            else
             {
                 return NotFound();
             }
@@ -59,7 +91,7 @@ namespace ProgramPro.Server.Controllers
         // PUT: api/Trainingprograms/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutTrainingprogram(int id, TrainingProgram trainingprogram)
+        public async Task<IActionResult> PutTrainingprogram(Guid id, TrainingProgram trainingprogram)
         {
             if (id != trainingprogram.Id)
             {
@@ -93,6 +125,7 @@ namespace ProgramPro.Server.Controllers
         public async Task<ActionResult<TrainingProgram>> PostTrainingprogram(TrainingProgram trainingprogram)
         {
             //trainingprogram.ApplicationUserId = UserHelper.GetUserId(User);
+            trainingprogram.Id = Guid.NewGuid();
             _context.TrainingPrograms.Add(trainingprogram);
             await _context.SaveChangesAsync();
 
@@ -115,7 +148,18 @@ namespace ProgramPro.Server.Controllers
             return NoContent();
         }
 
-        private bool TrainingprogramExists(int id)
+        [HttpDelete]
+        public async Task<IActionResult> DeleteTrainingprograms()
+        {
+            var trainingprograms = _context.TrainingPrograms;
+            _context.TrainingPrograms.RemoveRange(trainingprograms);
+
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        private bool TrainingprogramExists(Guid id)
         {
             return _context.TrainingPrograms.Any(e => e.Id == id);
         }

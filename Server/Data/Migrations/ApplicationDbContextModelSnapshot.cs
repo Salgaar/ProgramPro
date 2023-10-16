@@ -17,7 +17,7 @@ namespace ProgramPro.Server.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.10")
+                .HasAnnotation("ProductVersion", "7.0.12")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -400,14 +400,38 @@ namespace ProgramPro.Server.Data.Migrations
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("TrainingprogramId")
+                    b.Property<int>("SplitId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Type")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TrainingprogramId");
+                    b.HasIndex("SplitId");
 
                     b.ToTable("Days");
+                });
+
+            modelBuilder.Entity("ProgramPro.Shared.Models.DayDefinition", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Number")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SplitDefinitionId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SplitDefinitionId");
+
+                    b.ToTable("DayDefinitions");
                 });
 
             modelBuilder.Entity("ProgramPro.Shared.Models.Entry", b =>
@@ -519,9 +543,6 @@ namespace ProgramPro.Server.Data.Migrations
                     b.Property<string>("PercentageOfOneRepMax")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("ProgramId")
-                        .HasColumnType("int");
-
                     b.Property<string>("RIR")
                         .HasColumnType("nvarchar(max)");
 
@@ -531,6 +552,9 @@ namespace ProgramPro.Server.Data.Migrations
                     b.Property<int>("Reps")
                         .HasColumnType("int");
 
+                    b.Property<Guid>("TrainingProgramId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<double>("Weight")
                         .HasColumnType("float");
 
@@ -538,7 +562,7 @@ namespace ProgramPro.Server.Data.Migrations
 
                     b.HasIndex("ExerciseId");
 
-                    b.HasIndex("ProgramId");
+                    b.HasIndex("TrainingProgramId");
 
                     b.ToTable("Goals");
                 });
@@ -624,7 +648,7 @@ namespace ProgramPro.Server.Data.Migrations
                     b.ToTable("Set");
                 });
 
-            modelBuilder.Entity("ProgramPro.Shared.Models.Statistics", b =>
+            modelBuilder.Entity("ProgramPro.Shared.Models.SetDefinition", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -632,15 +656,71 @@ namespace ProgramPro.Server.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("UserId")
+                    b.Property<string>("PercentageOfOneRepMax")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RIR")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RPE")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Reps")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("UsingPercentageOfOneRepMax")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("UsingRIR")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("UsingRPE")
+                        .HasColumnType("bit");
+
+                    b.Property<double>("Weight")
+                        .HasColumnType("float");
+
+                    b.Property<int>("WorkoutExerciseDefinitionId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Statistics");
+                    b.HasIndex("WorkoutExerciseDefinitionId");
+
+                    b.ToTable("SetDefinitions");
                 });
 
-            modelBuilder.Entity("ProgramPro.Shared.Models.TrainingProgram", b =>
+            modelBuilder.Entity("ProgramPro.Shared.Models.Split", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SplitNumber")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("TrainingProgramId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TrainingProgramId");
+
+                    b.ToTable("Splits");
+                });
+
+            modelBuilder.Entity("ProgramPro.Shared.Models.SplitDefinition", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -660,8 +740,42 @@ namespace ProgramPro.Server.Data.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("SplitNumber")
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationUserId");
+
+                    b.ToTable("SplitDefinitions");
+                });
+
+            modelBuilder.Entity("ProgramPro.Shared.Models.Statistics", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Statistics");
+                });
+
+            modelBuilder.Entity("ProgramPro.Shared.Models.TrainingProgram", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ApplicationUserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
@@ -694,6 +808,29 @@ namespace ProgramPro.Server.Data.Migrations
                     b.HasIndex("ExerciseId");
 
                     b.ToTable("WorkoutExercises");
+                });
+
+            modelBuilder.Entity("ProgramPro.Shared.Models.WorkoutExerciseDefinition", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("DayDefinitionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ExerciseId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DayDefinitionId");
+
+                    b.HasIndex("ExerciseId");
+
+                    b.ToTable("WorkoutExerciseDefinitions");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -760,13 +897,24 @@ namespace ProgramPro.Server.Data.Migrations
 
             modelBuilder.Entity("ProgramPro.Shared.Models.Day", b =>
                 {
-                    b.HasOne("ProgramPro.Shared.Models.TrainingProgram", "Trainingprogram")
+                    b.HasOne("ProgramPro.Shared.Models.Split", "Split")
                         .WithMany("Days")
-                        .HasForeignKey("TrainingprogramId")
+                        .HasForeignKey("SplitId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Trainingprogram");
+                    b.Navigation("Split");
+                });
+
+            modelBuilder.Entity("ProgramPro.Shared.Models.DayDefinition", b =>
+                {
+                    b.HasOne("ProgramPro.Shared.Models.SplitDefinition", "SplitDefinition")
+                        .WithMany("DayDefinitions")
+                        .HasForeignKey("SplitDefinitionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SplitDefinition");
                 });
 
             modelBuilder.Entity("ProgramPro.Shared.Models.Entry", b =>
@@ -807,15 +955,15 @@ namespace ProgramPro.Server.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ProgramPro.Shared.Models.TrainingProgram", "Program")
+                    b.HasOne("ProgramPro.Shared.Models.TrainingProgram", "TrainingProgram")
                         .WithMany("Goals")
-                        .HasForeignKey("ProgramId")
+                        .HasForeignKey("TrainingProgramId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Exercise");
 
-                    b.Navigation("Program");
+                    b.Navigation("TrainingProgram");
                 });
 
             modelBuilder.Entity("ProgramPro.Shared.Models.PersonalRecord", b =>
@@ -840,11 +988,44 @@ namespace ProgramPro.Server.Data.Migrations
                     b.Navigation("WorkoutExercise");
                 });
 
+            modelBuilder.Entity("ProgramPro.Shared.Models.SetDefinition", b =>
+                {
+                    b.HasOne("ProgramPro.Shared.Models.WorkoutExerciseDefinition", "WorkoutExerciseDefinition")
+                        .WithMany("SetDefinitions")
+                        .HasForeignKey("WorkoutExerciseDefinitionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("WorkoutExerciseDefinition");
+                });
+
+            modelBuilder.Entity("ProgramPro.Shared.Models.Split", b =>
+                {
+                    b.HasOne("ProgramPro.Shared.Models.TrainingProgram", "TrainingProgram")
+                        .WithMany("Splits")
+                        .HasForeignKey("TrainingProgramId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TrainingProgram");
+                });
+
+            modelBuilder.Entity("ProgramPro.Shared.Models.SplitDefinition", b =>
+                {
+                    b.HasOne("ProgramPro.Shared.Models.ApplicationUser", "ApplicationUser")
+                        .WithMany("SplitDefinitions")
+                        .HasForeignKey("ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("ApplicationUser");
+                });
+
             modelBuilder.Entity("ProgramPro.Shared.Models.TrainingProgram", b =>
                 {
                     b.HasOne("ProgramPro.Shared.Models.ApplicationUser", "ApplicationUser")
                         .WithMany("TrainingPrograms")
-                        .HasForeignKey("ApplicationUserId");
+                        .HasForeignKey("ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("ApplicationUser");
                 });
@@ -868,14 +1049,40 @@ namespace ProgramPro.Server.Data.Migrations
                     b.Navigation("Exercise");
                 });
 
+            modelBuilder.Entity("ProgramPro.Shared.Models.WorkoutExerciseDefinition", b =>
+                {
+                    b.HasOne("ProgramPro.Shared.Models.DayDefinition", "DayDefinition")
+                        .WithMany("WorkoutExerciseDefinitions")
+                        .HasForeignKey("DayDefinitionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ProgramPro.Shared.Models.Exercise", "Exercise")
+                        .WithMany()
+                        .HasForeignKey("ExerciseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DayDefinition");
+
+                    b.Navigation("Exercise");
+                });
+
             modelBuilder.Entity("ProgramPro.Shared.Models.ApplicationUser", b =>
                 {
+                    b.Navigation("SplitDefinitions");
+
                     b.Navigation("TrainingPrograms");
                 });
 
             modelBuilder.Entity("ProgramPro.Shared.Models.Day", b =>
                 {
                     b.Navigation("WorkoutExercises");
+                });
+
+            modelBuilder.Entity("ProgramPro.Shared.Models.DayDefinition", b =>
+                {
+                    b.Navigation("WorkoutExerciseDefinitions");
                 });
 
             modelBuilder.Entity("ProgramPro.Shared.Models.ExerciseStatistics", b =>
@@ -888,6 +1095,16 @@ namespace ProgramPro.Server.Data.Migrations
                     b.Navigation("Entries");
                 });
 
+            modelBuilder.Entity("ProgramPro.Shared.Models.Split", b =>
+                {
+                    b.Navigation("Days");
+                });
+
+            modelBuilder.Entity("ProgramPro.Shared.Models.SplitDefinition", b =>
+                {
+                    b.Navigation("DayDefinitions");
+                });
+
             modelBuilder.Entity("ProgramPro.Shared.Models.Statistics", b =>
                 {
                     b.Navigation("BodyStatistics");
@@ -897,14 +1114,19 @@ namespace ProgramPro.Server.Data.Migrations
 
             modelBuilder.Entity("ProgramPro.Shared.Models.TrainingProgram", b =>
                 {
-                    b.Navigation("Days");
-
                     b.Navigation("Goals");
+
+                    b.Navigation("Splits");
                 });
 
             modelBuilder.Entity("ProgramPro.Shared.Models.WorkoutExercise", b =>
                 {
                     b.Navigation("Sets");
+                });
+
+            modelBuilder.Entity("ProgramPro.Shared.Models.WorkoutExerciseDefinition", b =>
+                {
+                    b.Navigation("SetDefinitions");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,0 +1,122 @@
+﻿@page "/DayDefinitions/Edit/{Id:int}"
+
+@inject NavigationManager NavManager
+@inject HttpClient Http
+@inject NotificationService NotificationService
+@inject DialogService DialogService
+
+
+<div class="rz-m-12">
+    <RadzenBreadCrumb>
+        <RadzenBreadCrumbItem Text="SplitDefinitions" />
+        <RadzenBreadCrumbItem Path="@splitDefinitionCrumb" Text="Edit Split Definition" />
+        <RadzenBreadCrumbItem Style="color:darkseagreen" Text="Edit Day" />
+    </RadzenBreadCrumb>
+</div>
+
+@if (dayDefinition != null)
+{
+    <RadzenRow>
+        <RadzenText Style="color:darkseagreen" TextStyle="TextStyle.DisplayH5">Day Definition Number: @dayDefinition.Number</RadzenText>
+</RadzenRow>
+
+     <RadzenRow>
+        <RadzenText TextStyle="TextStyle.DisplayH6">Workout Exercise Definition</RadzenText>
+     </RadzenRow>
+    
+   
+    <RadzenRow Style="margin-bottom:20px;">
+        <RadzenButton Click="() => AddWorkoutExercise()">Add Workout Exercise Definition</RadzenButton>
+        <RadzenButton Click=@Delete>Delete Day Definition</RadzenButton>
+    </RadzenRow>
+
+    @if (dayDefinition.WorkoutExerciseDefinitions != null)
+        {
+            <RadzenDataGrid Data="@workoutExerciseDefinitions" TItem="WorkoutExerciseDefinition">
+                <Columns>
+                <RadzenDataGridColumn TItem="WorkoutExerciseDefinition" Property="Exercise.Name" Title="Exercise" />
+                <RadzenDataGridColumn TItem="WorkoutExerciseDefinition" Title="Sets Definitions">
+                    <Template Context="workoutExerciseDefinition">
+                        @workoutExerciseDefinition.SetDefinitions.Count
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="WorkoutExerciseDefinition">
+                        <Template Context="workoutExerciseDefinition">
+                        <RadzenButton Icon="edit" Size="ButtonSize.Small" Click="@(args => EditWorkoutExercise(workoutExerciseDefinition))" />
+                        </Template>
+                </RadzenDataGridColumn>
+
+                </Columns>
+            </RadzenDataGrid>
+        }
+}
+else
+{
+    <RadzenRow Style="padding:100px">
+        <div style="margin:auto; text-align:center;">
+            <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Primary" Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+        </div>
+    </RadzenRow>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    private IEnumerable<WorkoutExerciseDefinition> workoutExerciseDefinitions;
+    public DayDefinition dayDefinition = null;
+    string splitDefinitionCrumb = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            dayDefinition = await Http.GetFromJsonAsync<DayDefinition>($"api/DayDefinitions/{Id}");
+            workoutExerciseDefinitions = dayDefinition.WorkoutExerciseDefinitions;
+            splitDefinitionCrumb = $"/SplitDefinitions/Edit/{dayDefinition.SplitDefinitionId}";
+            StateHasChanged();
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+
+    private void EditWorkoutExercise(WorkoutExerciseDefinition workoutExerciseDefinition)
+    {
+        NavManager.NavigateTo($"/WorkoutExerciseDefinitions/Edit/{workoutExerciseDefinition.Id}");
+    }
+
+    private async Task AddWorkoutExercise()
+    {
+        var workoutExerciseDefinition = await DialogService.OpenAsync<ProgramPro.Client.Pages.WorkoutExerciseDefinitions.Create>($"Create Workout Exercise Definition",
+            new Dictionary<string, object>() { { "DayDefinitionId", Id} },
+            new DialogOptions() { Resizable = true, Draggable = true });
+        if ((WorkoutExerciseDefinition)workoutExerciseDefinition != default)
+        {
+            NavManager.NavigateTo($"/WorkoutExerciseDefinitions/Edit/{workoutExerciseDefinition.Id}");
+        }
+    }
+
+    private async Task Delete()
+    {
+        var result = await DialogService.OpenAsync<Confirmation>($"Delete",
+            new Dictionary<string, object>() { { "Message", "Are you sure you want to delete this day?" } },
+            new DialogOptions() { Resizable = true, Draggable = true });
+        if(result != null)
+        {
+            if ((bool)result == true)
+            {
+                var response = await Http.DeleteAsync($"api/DayDefinitions/{Id}");
+                if (response.IsSuccessStatusCode)
+                {
+                    NavManager.NavigateTo($"/SplitDefinitions/Edit/{dayDefinition.SplitDefinitionId}");
+                    NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Day Definition Deleted", Detail = "", Duration = 5000 });
+                }
+                else
+                {
+                    NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Failed To Delete Day Definition", Detail = "", Duration = 5000 });
+                }
+            }
+        }
+    }
+}
