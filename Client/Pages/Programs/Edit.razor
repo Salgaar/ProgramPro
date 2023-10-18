@@ -3,12 +3,12 @@
 @inject DialogService DialogService
 @inject NotificationService NotificationService
 
-<div class="rz-m-12">
+<RadzenRow Style="margin-bottom:20px;">
     <RadzenBreadCrumb>
         <RadzenBreadCrumbItem Path="/Programs" Text="Programs" />
         <RadzenBreadCrumbItem Style="color:darkseagreen" Text="Edit" />
     </RadzenBreadCrumb>
-</div>
+</RadzenRow>
 
 @if (Program == null)
 {
@@ -22,27 +22,27 @@ else
 {
     <RadzenRow Style="margin-bottom:10px">
             <RadzenColumn>
-                <RadzenButton Style="float:right;" ButtonStyle="ButtonStyle.Success" Click=@(async() => await Save())>Save</RadzenButton>
+                <RadzenButton ButtonStyle="ButtonStyle.Success" Click=@(async() => await Save())>Save</RadzenButton>
             </RadzenColumn>
     </RadzenRow>
     <RadzenRow Style="margin-bottom:10px">
         <RadzenColumn>
             <RadzenCard>
                 <RadzenRow>
-                    <RadzenColumn Size="6">
+                    <RadzenColumn Size="4">
 
-                        <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H3">Name</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H3">Name</RadzenText>
                         <RadzenTextBox @bind-Value="Program.Name" class="w-100" />
 
                     </RadzenColumn>
-                    <RadzenColumn Size="6">
+                    <RadzenColumn Size="4">
 
-                        <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H3">Description</RadzenText>
+                        <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H3">Description</RadzenText>
                         <RadzenTextArea @bind-Value="Program.Description" class="w-100" />
 
                     </RadzenColumn>
-                    <RadzenColumn>
-                        <RadzenText Text="Start Date" />
+                    <RadzenColumn Size="4">
+                        <RadzenText TextStyle="TextStyle.H6" Text="Start Date" />
                         <RadzenDatePicker DateFormat="d" @bind-Value="@Program.StartDate" class="w-100" />
                     </RadzenColumn>
                 </RadzenRow>

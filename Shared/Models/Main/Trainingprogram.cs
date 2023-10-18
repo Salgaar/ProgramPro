@@ -14,7 +14,7 @@ namespace ProgramPro.Shared.Models
         public string ApplicationUserId { get; set; }
         public ApplicationUser ApplicationUser { get; set; }
         public ICollection<Goal> Goals { get; set; }
-        public ICollection<Split> Splits { get; set; }
+        public ICollection<Component> Components { get; set; }
         public DateTime StartDate { get; set; }
     }
 }

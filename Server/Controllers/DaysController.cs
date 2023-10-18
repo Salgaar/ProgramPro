@@ -5,10 +5,12 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.Elfie.Model.Map;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using ProgramPro.Server.Data;
 using ProgramPro.Shared.Models;
+using ProgramPro.Shared.Models.DataTransferObjects;
 
 namespace ProgramPro.Server.Controllers
 {
@@ -25,11 +27,11 @@ namespace ProgramPro.Server.Controllers
         }
 
         // GET: api/Days/GetDays/5
-        [HttpGet("{trainingProgramId}/GetDays")]
-        public async Task<ActionResult<string>> GetDays(int splitId)
+        [HttpGet("{componentId}/GetDays")]
+        public async Task<ActionResult<string>> GetDays(int componentId)
         {
             var days = _context.Days
-                .Where(x => x.SplitId == splitId);
+                .Where(x => x.ComponentId == componentId);
 
             foreach(var day in days)
             {
@@ -49,7 +51,7 @@ namespace ProgramPro.Server.Controllers
         public async Task<ActionResult<string>> GetDay(int id)
         {
             var day = await _context.Days
-                .Include(x => x.Split)
+                .Include(x => x.Component)
                 .FirstOrDefaultAsync(x => x.Id == id);
 
             if (day != null)
@@ -67,6 +69,23 @@ namespace ProgramPro.Server.Controllers
             }
 
             return JsonConvert.SerializeObject(day, Extensions.JsonOptions.jsonSettings);
+        }
+
+        [HttpPost("Overwrite")]
+        public async Task<ActionResult<Day>> OverwriteDay(OverwriteDay overwriteDay)
+        {
+            if (ModelState.IsValid)
+            {
+                _context.Days.Remove(overwriteDay.ToDelete);
+                _context.Days.Add(overwriteDay.ToAdd);
+                await _context.SaveChangesAsync();
+
+                return CreatedAtAction("GetDay", new { id = overwriteDay.ToAdd.Id }, JsonConvert.SerializeObject(overwriteDay.ToAdd, Extensions.JsonOptions.jsonSettings));
+            }
+            else
+            {
+                return BadRequest(ModelState);
+            }
         }
 
         // PUT: api/Days/5
@@ -107,18 +126,18 @@ namespace ProgramPro.Server.Controllers
         {
             if (ModelState.IsValid)
             {
-                var split = await _context.Splits.FindAsync(day.SplitId);
+                var component = await _context.Components.Include(x => x.Days).FirstOrDefaultAsync(x => x.Id == day.ComponentId);
 
                 var program = await _context.TrainingPrograms
-                    .FirstOrDefaultAsync(x => x.Id == split.TrainingProgramId);
+                    .FirstOrDefaultAsync(x => x.Id == component.TrainingProgramId);
 
                 await _context.Entry(program)
-                    .Collection(x => x.Splits)
+                    .Collection(x => x.Components)
                     .Query()
                     .Include(x => x.Days)
                     .LoadAsync();
 
-                var splits = program.Splits.Where(x => x.SplitNumber > split.SplitNumber).ToList();
+                var splits = program.Components.Where(x => x.ComponentNumber > component.ComponentNumber).ToList();
                 if(splits != null)
                 {
                     foreach (var itemSplit in splits)
@@ -149,18 +168,18 @@ namespace ProgramPro.Server.Controllers
         {
             if (ModelState.IsValid)
             {
-                var split = await _context.Splits.FindAsync(days[0].SplitId);
+                var split = await _context.Components.FindAsync(days[0].ComponentId);
 
                 var program = await _context.TrainingPrograms
                     .FirstOrDefaultAsync(x => x.Id == split.TrainingProgramId);
 
                 await _context.Entry(program)
-                    .Collection(x => x.Splits)
+                    .Collection(x => x.Components)
                     .Query()
                     .Include(x => x.Days)
                     .LoadAsync();
 
-                var splits = program.Splits.Where(x => x.SplitNumber > split.SplitNumber).ToList();
+                var splits = program.Components.Where(x => x.ComponentNumber > split.ComponentNumber).ToList();
                 if (splits != null)
                 {
                     foreach (var itemSplit in splits)
@@ -176,7 +195,7 @@ namespace ProgramPro.Server.Controllers
                 _context.Days.AddRange(days);
                 await _context.SaveChangesAsync();
 
-                return CreatedAtAction("PostDays", new { trainingProgramId = days[0].Split.TrainingProgramId }, JsonConvert.SerializeObject(days, Extensions.JsonOptions.jsonSettings));
+                return CreatedAtAction("PostDays", new { trainingProgramId = days[0].Component.TrainingProgramId }, JsonConvert.SerializeObject(days, Extensions.JsonOptions.jsonSettings));
             }
             else
             {
@@ -192,6 +211,39 @@ namespace ProgramPro.Server.Controllers
             if (day == null)
             {
                 return NotFound();
+            }
+
+            var split = await _context.Components.Include(x => x.Days).FirstOrDefaultAsync(x => x.Id == day.ComponentId);
+
+            foreach (var d in split.Days)
+            {
+                if (d.Date > day.Date)
+                {
+                    d.Date = d.Date.AddDays(-1);
+                    _context.Days.Update(d);
+                }
+            }
+
+            var program = await _context.TrainingPrograms
+                .FirstOrDefaultAsync(x => x.Id == split.TrainingProgramId);
+
+            await _context.Entry(program)
+                .Collection(x => x.Components)
+                .Query()
+                .Include(x => x.Days)
+                .LoadAsync();
+
+            var splits = program.Components.Where(x => x.ComponentNumber > split.ComponentNumber).ToList();
+            if (splits != null)
+            {
+                foreach (var itemSplit in splits)
+                {
+                    foreach (var itemDay in itemSplit.Days)
+                    {
+                        itemDay.Date = itemDay.Date.AddDays(-1);
+                        _context.Days.Update(itemDay);
+                    }
+                }
             }
 
             _context.Days.Remove(day);

@@ -15,11 +15,11 @@ namespace ProgramPro.Server.Controllers
     [ApiKeyAuthorization]
     [Route("api/[controller]")]
     [ApiController]
-    public class SplitDefinitionsController : ControllerBase
+    public class ComponentDefinitionsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
 
-        public SplitDefinitionsController(ApplicationDbContext context)
+        public ComponentDefinitionsController(ApplicationDbContext context)
         {
             _context = context;
         }
@@ -28,7 +28,7 @@ namespace ProgramPro.Server.Controllers
         [HttpGet]
         public async Task<ActionResult<string>> GetSplitDefinitions()
         {
-            var splitDefinitions = await _context.SplitDefinitions.ToListAsync();
+            var splitDefinitions = await _context.ComponentDefinitions.ToListAsync();
 
             if (splitDefinitions != null)
             {
@@ -65,7 +65,7 @@ namespace ProgramPro.Server.Controllers
         public async Task<ActionResult<string>> GetSplitDefinition(int id)
         {
             // First, load the TrainingProgram
-            var splitDefinition = await _context.SplitDefinitions
+            var splitDefinition = await _context.ComponentDefinitions
                 .Where(x => x.Id == id)
                 .FirstOrDefaultAsync();
 
@@ -99,7 +99,7 @@ namespace ProgramPro.Server.Controllers
         // PUT: api/SplitDefinitions/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutSplitDefinition(int id, SplitDefinition splitDefinition)
+        public async Task<IActionResult> PutSplitDefinition(int id, ComponentDefinition splitDefinition)
         {
             if (id != splitDefinition.Id)
             {
@@ -130,9 +130,9 @@ namespace ProgramPro.Server.Controllers
         // POST: api/SplitDefinitions
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<SplitDefinition>> PostSplitDefinition(SplitDefinition splitDefinition)
+        public async Task<ActionResult<ComponentDefinition>> PostSplitDefinition(ComponentDefinition splitDefinition)
         {
-            _context.SplitDefinitions.Add(splitDefinition);
+            _context.ComponentDefinitions.Add(splitDefinition);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetSplitDefinition", new { id = splitDefinition.Id }, splitDefinition);
@@ -142,13 +142,13 @@ namespace ProgramPro.Server.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteSplitDefinition(int id)
         {
-            var splitDefinition = await _context.SplitDefinitions.FindAsync(id);
+            var splitDefinition = await _context.ComponentDefinitions.FindAsync(id);
             if (splitDefinition == null)
             {
                 return NotFound();
             }
 
-            _context.SplitDefinitions.Remove(splitDefinition);
+            _context.ComponentDefinitions.Remove(splitDefinition);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -156,7 +156,7 @@ namespace ProgramPro.Server.Controllers
 
         private bool SplitDefinitionExists(int id)
         {
-            return _context.SplitDefinitions.Any(e => e.Id == id);
+            return _context.ComponentDefinitions.Any(e => e.Id == id);
         }
     }
 }

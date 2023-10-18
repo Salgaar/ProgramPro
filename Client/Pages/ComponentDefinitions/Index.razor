@@ -1,0 +1,92 @@
+﻿@page "/ComponentDefinitions"
+@inject NavigationManager Nav
+@inject NotificationService NotificationService
+@inject HttpClient Http
+
+
+<RadzenRow>
+    <RadzenColumn>
+        <RadzenCard Variant="Variant.Text" Style="margin:10px; border-radius: 0px;">
+            <RadzenButton Click=@(args => MakeNewComponentDefinition()) Text="Create New" Icon="add_circle_outline" ButtonStyle="ButtonStyle.Success" />
+            <RadzenButton Click=@(args => DeleteAllComponentDefinition()) Text="DeleteAll" Icon="add_circle_outline" ButtonStyle="ButtonStyle.Danger" />
+        </RadzenCard>
+    </RadzenColumn>
+</RadzenRow>
+
+<RadzenRow>
+    <RadzenColumn>
+        <RadzenDataList WrapItems="false" PageSize="5" AllowPaging="true" Data="@componentDefinitions" TItem="ComponentDefinition">
+            <Template Context="componentDefinition">
+                <RadzenRow>
+                    <RadzenColumn Size="3">
+                        <RadzenText TextStyle="TextStyle.H5">@componentDefinition.Name</RadzenText>
+                    </RadzenColumn>
+                    <RadzenColumn>
+                        <RadzenText TextStyle="TextStyle.Overline">Description</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body1">@componentDefinition.Description</RadzenText>
+                    </RadzenColumn>
+                    <RadzenColumn>
+                        <RadzenText TextStyle="TextStyle.Overline">Day Count</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body1">@componentDefinition.DayDefinitions.Count</RadzenText>
+                    </RadzenColumn>
+
+                    <RadzenColumn>
+                        <RadzenButton Click="@(() => EditComponentDefinition(componentDefinition.Id))">Edit</RadzenButton>
+                    </RadzenColumn>
+                </RadzenRow>
+            </Template>
+        </RadzenDataList>
+    </RadzenColumn>
+</RadzenRow>
+
+@code {
+    bool allowVirtualization = false;
+    private List<ComponentDefinition> componentDefinitions = new List<ComponentDefinition>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            componentDefinitions = await Http.GetFromJsonAsync<List<ComponentDefinition>>("api/ComponentDefinitions");
+            StateHasChanged();
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+
+    private void EditComponentDefinition(int id)
+    {
+        Nav.NavigateTo($"/ComponentDefinitions/Edit/{id}");
+    }
+
+    private async Task MakeNewComponentDefinition()
+    {
+        var result = await Http.PostAsJsonAsync("api/ComponentDefinitions", new ComponentDefinition { Name = "New Component" });
+        if (result.IsSuccessStatusCode)
+        {
+            var ComponentDefinition = await result.Content.ReadFromJsonAsync<ComponentDefinition>();
+            Nav.NavigateTo($"/ComponentDefinitions/Edit/{ComponentDefinition.Id}");
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = result.ReasonPhrase, Duration = 20000 });
+        }
+    }
+
+    private async Task DeleteAllComponentDefinition()
+    {
+        var result = await Http.DeleteAsync("api/ComponentDefinitions");
+        if (result.IsSuccessStatusCode)
+        {
+            componentDefinitions = new List<ComponentDefinition>();
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Success", Detail = "Components Deleted", Duration = 20000 });
+            StateHasChanged();
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = result.ReasonPhrase, Duration = 20000 });
+        }
+    }
+}

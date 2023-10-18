@@ -1,82 +1,105 @@
-﻿@inject NavigationManager NavManager
+﻿@using ProgramPro.Shared.Models.DataTransferObjects;
+@inject NavigationManager NavManager
 @inject HttpClient Http
 @inject NotificationService NotificationService
 @inject ContextMenuService ContextMenuService
 @inject DialogService DialogService
 
-<RadzenRow Style="margin-top:10px;margin-bottom:10px;">
+<RadzenRow Style="margin-top:10px;margin-bottom:30px;">
     <RadzenColumn>
-        <RadzenButton Text="Add Split" Click="AddSplit" />
+        <RadzenButton Text="Add Component" Click="AddComponent" />
     </RadzenColumn>
 </RadzenRow>
 
-
-
-@foreach (Split split in splits)
-        {
-<div class="calendar">
-            @{
-            double divide = (double)split.Days.Count / 5;
+@foreach (Component component in components)
+{
+    <div class="calendar">
+        @{
+            double divide = (double)component.Days.Count / 5;
             double timesToRun = Math.Ceiling(divide);
             int daysRan = 0;
-            }
+        }
 
-            <div>
-                <div class="split-number">
-                    Split @split.SplitNumber
-                </div>
+        <div>
             <RadzenRow Style="padding:10px; margin-bottom:20px;">
-                <RadzenColumn>
-                    <RadzenText Text="Name" />
-                    <RadzenNumeric @bind-Value="@split.Name" class="w-100" />
+                <RadzenColumn Size="2">
+                    <RadzenText TextStyle="TextStyle.H6">Component @component.ComponentNumber</RadzenText>
                 </RadzenColumn>
                 <RadzenColumn>
-                    <RadzenText Text="Description" />
-                    <RadzenNumeric @bind-Value="@split.Description" class="w-100" />
+                    <RadzenRow>
+                        <RadzenColumn Size="3">
+                            <RadzenText TextAlign="TextAlign.Right" Text="Name" />
+                        </RadzenColumn>
+                        <RadzenColumn>
+                            <RadzenTextBox @bind-Value="@component.Name" />
+                        </RadzenColumn>
+                       
+                        
+                    </RadzenRow>
                 </RadzenColumn>
-                <RadzenColumn>
-                    <RadzenButton Text="Add Day" Click=@((args) => NewDayClickedMenu(args, splits, split)) />
+                <RadzenColumn >
+                    <RadzenRow>
+                        <RadzenColumn Size="3">
+                            <RadzenText TextAlign="TextAlign.Right" Text="Description" />
+                        </RadzenColumn>
+                        <RadzenColumn>
+                            <RadzenTextBox @bind-Value="@component.Description" />
+                        </RadzenColumn>
+                        
+                        
+</RadzenRow>
+                    
+                </RadzenColumn>
+                <RadzenColumn Size="2" Style="text-align:right">
+                    <RadzenButton Text="Add Day" Click=@((args) => NewDayClickedMenu(args, components, component)) />
+                </RadzenColumn>
+                <RadzenColumn Size="2" Style="text-align:right">
+                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Text="Delete Split" Click=@(async() => await DeleteComponent(component)) />
                 </RadzenColumn>
             </RadzenRow>
-                @if (split.Days.Count > 0)
+            @if (component.Days.Count > 0)
+            {
+                @for (int i = 0; i < timesToRun && daysRan < component.Days.Count; i++)
                 {
-                    @for (int i = 0; i < timesToRun && daysRan < split.Days.Count; i++)
-                    {
-                        <div class="split">
+                    <div class="component">
 
-                            <div class="days">
-                                @for (int k = 1; k <= 5 && daysRan < split.Days.Count; k++, daysRan++)
-                                {
-                                    var day = split.Days.ToList()[daysRan];
+                        <div class="days">
+                            @for (int k = 1; k <= 5 && daysRan < component.Days.Count; k++, daysRan++)
+                            {
+                                var day = component.Days.ToList()[daysRan];
 
-                                    <div class="day" @onclick="(args) => DayClickedMenu(args, day)">
-                                        <div class="day-number">
-                                            @day.Date.Day : @day.Date.DayOfWeek
-                                        </div>
-                                        @if (day.WorkoutExercises.Count == 0)
-                                        {
-                                            <p>empty training day</p>
-                                        }
-                                        else
-                                        {
-                                            @foreach (var workoutExercise in day.WorkoutExercises)
-                                            {
-                                                <p style="margin-bottom:5px">@workoutExercise.Exercise.Name: @workoutExercise.Sets.Count sets</p>
-                                            }
-                                        }
+                                <div class="day" @onclick="(args) => DayClickedMenu(args, day)">
+                                    <div class="day-number">
+                                        @day.Date.Day : @day.Date.DayOfWeek
                                     </div>
-                                }
-                            </div>
-
+                                    @if (day.Type == DayType.Rest)
+                                    {
+                                        <p>rest day</p>
+                                    }
+                                    else if (day.WorkoutExercises.Count == 0)
+                                    {
+                                        <p>empty training day</p>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var workoutExercise in day.WorkoutExercises)
+                                        {
+                                            <p style="margin-bottom:5px">@workoutExercise.Exercise.Name: @workoutExercise.Sets.Count sets</p>
+                                        }
+                                    }
+                                </div>
+                            }
                         </div>
-                    }
-                }
-            </div>
-    
-    
 
-    
-</div>
+                    </div>
+                }
+            }
+        </div>
+
+
+
+
+    </div>
 }
 
 
@@ -84,13 +107,13 @@
 @code {
     [Parameter]
     public TrainingProgram Program { get; set; }
-    public List<Split> splits = new List<Split>();
+    public List<Component> components = new List<Component>();
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            splits = Program.Splits.OrderBy(x => x.SplitNumber).ToList();
+            UpdateComponents(Program.Components.ToList());
         }
         catch (AccessTokenNotAvailableException exception)
         {
@@ -98,21 +121,33 @@
         }
     }
 
-    private async Task AddSplit()
+    private async Task AddComponent()
     {
-        Split split = new Split { Name = "New Split", Description = "", SplitNumber = Program.Splits.Count + 1, TrainingProgramId = Program.Id, Days = new List<Day>() };
-        var response = await Http.PostAsJsonAsync("api/Splits", split);
+        var componentNumber = components.Count + 1;
+        Component component = new Component { Name = "New Component", Description = "", ComponentNumber = componentNumber, TrainingProgramId = Program.Id, Days = new List<Day>() };
+        var response = await Http.PostAsJsonAsync("api/Components", component);
         if (response.IsSuccessStatusCode)
         {
-            var dbSplit = await response.Content.ReadFromJsonAsync<Split>();
-            splits.Add(dbSplit);
-            splits = splits.OrderBy(x => x.SplitNumber).ToList();
-            StateHasChanged();
-            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Success", Detail = "Added Split", Duration = 20000 });
+            await UpdateComponents();
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Success", Detail = "Added component", Duration = 5000 });
         }
         else
         {
-            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error adding split", Detail = response.ReasonPhrase, Duration = 20000 });
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error adding component", Detail = response.ReasonPhrase, Duration = 5000 });
+        }
+    }
+
+    private async Task DeleteComponent(Component component)
+    {
+        var response = await Http.DeleteAsync($"api/Components/{component.Id}");
+        if (response.IsSuccessStatusCode)
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Success", Detail = "Component Deleted", Duration = 5000 });
+            await UpdateComponents();
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error Deleting Component", Detail = response.ReasonPhrase, Duration = 5000 });
         }
     }
 
@@ -121,22 +156,20 @@
         var response = await Http.DeleteAsync($"api/Days/{day.Id}");
         if (response.IsSuccessStatusCode)
         {
-            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Success", Detail = "Deleted Day", Duration = 20000 });
-            var splits = await Http.GetFromJsonAsync<List<Split>>($"api/Splits");
-            this.splits = splits.OrderBy(x => x.SplitNumber).ToList();
-            StateHasChanged();
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Success", Detail = "Deleted Day", Duration = 5000 });
+            await UpdateComponents();
         }
         else
         {
-            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = response.ReasonPhrase, Duration = 20000 });
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = response.ReasonPhrase, Duration = 5000 });
         }
     }
 
-    private DateTime GetNewDayDate(Split split, List<Split> splits)
+    private DateTime GetNewDayDate(Component component, List<Component> components)
     {
-        List<Day> days = split.Days.ToList();
+        List<Day> days = component.Days.ToList();
         DateTime newDate = default;
-        if(days.Count > 0)
+        if (days.Count > 0)
         {
             newDate = days[0].Date;
             for (int i = 1; i < days.Count; i++)
@@ -150,12 +183,12 @@
         }
         else
         {
-            for(int i = 1; i < splits.Count; i++)
+            for (int i = 1; i < components.Count; i++)
             {
-                var earlierSplit = splits.FirstOrDefault(x => x.SplitNumber == split.SplitNumber - i);
-                if(earlierSplit != null)
+                var earlierComponent = components.FirstOrDefault(x => x.ComponentNumber == component.ComponentNumber - i);
+                if (earlierComponent != null)
                 {
-                    days = earlierSplit.Days.ToList();
+                    days = earlierComponent.Days.ToList();
                     if (days.Count > 0)
                     {
                         newDate = days[0].Date;
@@ -181,18 +214,115 @@
     /// <param name="day"></param>
     /// <returns></returns>
 
-    private async Task AddDay(Split split, List<Split> splits)
+    private async Task AddDay(Component component, List<Component> components, DayType dayType = DayType.Training)
     {
-        var newDate = GetNewDayDate(split, splits);
-        var result = await Http.PostAsJsonAsync("api/Days", new Day { Date = newDate, SplitId = split.Id });
+        var newDate = GetNewDayDate(component, components);
+        var result = await Http.PostAsJsonAsync("api/Days", new Day { Date = newDate, ComponentId = component.Id, Type = dayType });
         if (result.IsSuccessStatusCode)
         {
-            var day = await result.Content.ReadFromJsonAsync<Day>();
-            NavManager.NavigateTo($"/Days/Edit/{day.Id}");
+            if (dayType == DayType.Training)
+            {
+                var day = await result.Content.ReadFromJsonAsync<Day>();
+                NavManager.NavigateTo($"/Days/Edit/{day.Id}");
+            }
+            else
+            {
+                await UpdateComponents();
+            }
         }
         else
         {
-            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = result.ReasonPhrase, Duration = 20000 });
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = result.ReasonPhrase, Duration = 5000 });
+        }
+    }
+
+    async Task UpdateComponents()
+    {
+        var dbComponent = await Http.GetFromJsonAsync<List<Component>>($"api/Components");
+        dbComponent = dbComponent.OrderBy(x => x.ComponentNumber).ToList();
+        for (int i = 0; i < dbComponent.Count; i++)
+        {
+            dbComponent[i].Days = dbComponent[i].Days.OrderBy(x => x.Date).ToList();
+        }
+        this.components = dbComponent;
+        StateHasChanged();
+    }
+
+    void UpdateComponents(List<Component> components)
+    {
+        components = components.OrderBy(x => x.ComponentNumber).ToList();
+        for (int i = 0; i < components.Count; i++)
+        {
+            components[i].Days = components[i].Days.OrderBy(x => x.Date).ToList();
+        }
+        this.components = components;
+        StateHasChanged();
+    }
+
+    private async Task OverwriteDay(Day day, DayType dayType = DayType.Training)
+    {
+        var result = await Http.PostAsJsonAsync($"api/Days/Overwrite", new OverwriteDay { ToAdd = new Day { Date = day.Date, ComponentId = day.ComponentId, Type = dayType }, ToDelete = day });
+        if (result.IsSuccessStatusCode)
+        {
+            if (dayType == DayType.Training)
+            {
+                day = await result.Content.ReadFromJsonAsync<Day>();
+                NavManager.NavigateTo($"/Days/Edit/{day.Id}");
+            }
+            else
+            {
+                await UpdateComponents();
+            }
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = result.ReasonPhrase, Duration = 5000 });
+        }
+    }
+
+    void AddDayClickedMenu(MouseEventArgs args, List<Component> components, Component component)
+    {
+        ContextMenuService.Open(args,
+            new List<ContextMenuItem> {
+                new ContextMenuItem(){ Text = "Training Day", Value = new MenuItemValue { Component = component, Components = components, Choice = 1 } },
+                new ContextMenuItem(){ Text = "Rest Day", Value = new MenuItemValue { Component = component, Components = components, Choice = 2 } }
+                                         }, AddDayMenuClicked);
+    }
+
+    void AddDayMenuClicked(MenuItemEventArgs args)
+    {
+        ContextMenuService.Close();
+        var value = args.Value as MenuItemValue;
+        if (value.Choice == 1)
+        {
+            AddDay(value.Component, value.Components).ConfigureAwait(false);
+        }
+        else if (value.Choice == 2)
+        {
+            AddDay(value.Component, value.Components, DayType.Rest).ConfigureAwait(false);
+        }
+    }
+
+    void OverwriteDayClickedMenu(MouseEventArgs args, Day day)
+    {
+        ContextMenuService.Open(args,
+            new List<ContextMenuItem> {
+                new ContextMenuItem(){ Text = "Training Day", Value = new MenuItemValue { Day = day, Choice = 1 } },
+                new ContextMenuItem(){ Text = "Rest Day", Value = new MenuItemValue { Day = day, Choice = 2 } }
+                                             }, OverwriteDayMenuClicked);
+    }
+
+    void OverwriteDayMenuClicked(MenuItemEventArgs args)
+    {
+        ContextMenuService.Close();
+        var value = args.Value as MenuItemValue;
+        if (value.Choice == 1)
+        {
+            OverwriteDay(value.Day).ConfigureAwait(false);
+        }
+        else if (value.Choice == 2)
+        {
+            OverwriteDay(value.Day, DayType.Rest).ConfigureAwait(false);
         }
     }
 
@@ -201,8 +331,9 @@
         ContextMenuService.Open(args,
             new List<ContextMenuItem> {
                 new ContextMenuItem(){ Text = "Edit Day", Value = new MenuItemValue { Day = day, Choice = 1 } },
-                new ContextMenuItem(){ Text = "Delete Day", Value = new MenuItemValue { Day = day, Choice = 2 } }
-                                 }, DayMenuClicked);
+                new ContextMenuItem(){ Text = "Overwrite Day", Value = new MenuItemValue { Day = day, Choice = 2 } },
+                new ContextMenuItem(){ Text = "Delete Day", Value = new MenuItemValue { Day = day, Choice = 3 } }
+                                     }, DayMenuClicked);
     }
 
     void DayMenuClicked(MenuItemEventArgs args)
@@ -215,17 +346,21 @@
         }
         else if (value.Choice == 2)
         {
+            OverwriteDayClickedMenu(args, value.Day);
+        }
+        else if (value.Choice == 3)
+        {
             DeleteDay(value.Day).ConfigureAwait(false);
         }
     }
 
-    void NewDayClickedMenu(MouseEventArgs args, List<Split> splits, Split split)
+    void NewDayClickedMenu(MouseEventArgs args, List<Component> components, Component component)
     {
         ContextMenuService.Open(args,
             new List<ContextMenuItem> {
-                new ContextMenuItem(){ Text = "Add Day", Value = new MenuItemValue { Split = split, Splits = splits, Choice = 1 } },
-                new ContextMenuItem(){ Text = "Add Split", Value = new MenuItemValue { Split = split, Splits = splits, Choice = 2 } }
-                                         }, NewDayMenuClicked);
+                new ContextMenuItem(){ Text = "Add Day", Value = new MenuItemValue { Component = component, Components = components, Choice = 1 } },
+                new ContextMenuItem(){ Text = "Add Component", Value = new MenuItemValue { Component = component, Components = components, Choice = 2 } }
+                                             }, NewDayMenuClicked);
     }
 
     void NewDayMenuClicked(MenuItemEventArgs args)
@@ -234,43 +369,43 @@
         var value = args.Value as MenuItemValue;
         if (value.Choice == 1)
         {
-            AddDay(value.Split, value.Splits).ConfigureAwait(false);
+            AddDayClickedMenu(args, value.Components, value.Component);
         }
         else if (value.Choice == 2)
         {
-            SelectSplitDefinition(value.Split, value.Splits).ConfigureAwait(false);
+            SelectComponentDefinition(value.Component, value.Components).ConfigureAwait(false);
         }
     }
 
-    async Task SelectSplitDefinition(Split split, List<Split> splits)
+    async Task SelectComponentDefinition(Component component, List<Component> components)
     {
-        var splitDefinitions = await Http.GetFromJsonAsync<List<SplitDefinition>>("api/SplitDefinitions");
-        if (splitDefinitions == null)
+        var componentDefinitions = await Http.GetFromJsonAsync<List<ComponentDefinition>>("api/ComponentDefinitions");
+        if (componentDefinitions == null)
         {
-            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Could not get split definitions", Detail = "", Duration = 5000 });
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Could not get component definitions", Detail = "", Duration = 5000 });
         }
-        else if (splitDefinitions.Count == 0)
+        else if (componentDefinitions.Count == 0)
         {
-            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "You have not created any split definitions yet", Detail = "", Duration = 5000 });
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "You have not created any component definitions yet", Detail = "", Duration = 5000 });
         }
         else
         {
-            var result = await DialogService.OpenAsync<ProgramPro.Client.Pages.SplitDefinitions.SelectSplitDefinition>($"Select Split Definition",
-                new Dictionary<string, object>() { { "SplitDefinitions", splitDefinitions } },
+            var result = await DialogService.OpenAsync<ProgramPro.Client.Pages.ComponentDefinitions.SelectComponentDefinition>($"Select Component Definition",
+                new Dictionary<string, object>() { { "ComponentDefinitions", componentDefinitions } },
                 new DialogOptions() { Width = "400px", Height = "512px", Resizable = true, Draggable = true });
-            if (result as SplitDefinition != default)
+            if (result as ComponentDefinition != default)
             {
-                List<Day> daysFromSplitDefinition = new List<Day>();
-                var splitDefinition = result as SplitDefinition;
-                var dayDefinitions = splitDefinition.DayDefinitions.ToList();
-                var date = GetNewDayDate(split, splits);
+                List<Day> daysFromComponentDefinition = new List<Day>();
+                var ComponentDefinition = result as ComponentDefinition;
+                var dayDefinitions = ComponentDefinition.DayDefinitions.ToList();
+                var date = GetNewDayDate(component, components);
                 for (int i = 0; i < dayDefinitions.Count; i++)
                 {
                     var newDay = new Day()
                         {
                             Date = date.AddDays(dayDefinitions[i].Number - 1),
                             WorkoutExercises = new List<WorkoutExercise>(),
-                            SplitId = split.Id
+                            ComponentId = component.Id
                         };
                     var workoutExerciseDefinitions = dayDefinitions[i].WorkoutExerciseDefinitions.ToList();
                     for (int j = 0; j < workoutExerciseDefinitions.Count; j++)
@@ -298,15 +433,13 @@
                         }
                         newDay.WorkoutExercises.Add(workoutExercise);
                     }
-                    daysFromSplitDefinition.Add(newDay);
+                    daysFromComponentDefinition.Add(newDay);
                 }
-                var response = await Http.PostAsJsonAsync("api/Days/PostDays", daysFromSplitDefinition);
+                var response = await Http.PostAsJsonAsync("api/Days/PostDays", daysFromComponentDefinition);
                 if (response.IsSuccessStatusCode)
                 {
-                    NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Split Definition added to the program", Detail = "", Duration = 5000 });
-                    var dbSplits = await Http.GetFromJsonAsync<List<Split>>($"api/Splits");
-                    this.splits = dbSplits.OrderBy(x => x.SplitNumber).ToList();
-                    StateHasChanged();
+                    NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Component Definition added to the program", Detail = "", Duration = 5000 });
+                    await UpdateComponents();
                 }
                 else
                 {
@@ -319,8 +452,8 @@
     private class MenuItemValue
     {
         public Day Day { get; set; }
-        public Split Split { get; set; }
-        public List<Split> Splits { get; set; }
+        public Component Component { get; set; }
+        public List<Component> Components { get; set; }
         public int Choice { get; set; }
     }
 }
@@ -337,19 +470,11 @@
         border-radius: 5px;
     }
 
-    .split {
+    .component {
         display: flex;
         flex-direction: row;
         align-items: center;
         margin-bottom: 10px;
-    }
-
-    .split-number {
-        font-weight: bold;
-        width: 100%;
-        font-size: 20px;
-        text-align: center;
-        padding: 20px; /* Tilpas farven til uger */
     }
 
     .days {

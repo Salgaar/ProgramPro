@@ -1,0 +1,21 @@
+﻿@using System.Reflection;
+@using System.ComponentModel.DataAnnotations;
+@inject DialogService DialogService
+@inject HttpClient Http
+@inject NotificationService NotificationService
+
+<RadzenListBox @bind-Value=@selectedComponentDefinitionId Data=@ComponentDefinitions TextProperty="Name" ValueProperty="Id" Style="width: 100%; height:100%;" />
+<RadzenButton Click=@Submit >Select</RadzenButton>
+
+
+@code {
+    [Parameter]
+    public IEnumerable<ComponentDefinition> ComponentDefinitions { get; set; }
+    int selectedComponentDefinitionId;
+
+    void Submit()
+    {
+        var selectedComponentDefinition = ComponentDefinitions.FirstOrDefault(x => x.Id == selectedComponentDefinitionId);
+        DialogService.Close(selectedComponentDefinition);
+    }
+}

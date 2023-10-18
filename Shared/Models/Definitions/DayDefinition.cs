@@ -10,9 +10,10 @@ namespace ProgramPro.Shared.Models
     public class DayDefinition
     {
         public int Id { get; set; }
-        public int SplitDefinitionId { get; set; }
-        public SplitDefinition SplitDefinition { get; set; }
+        public int ComponentDefinitionId { get; set; }
+        public ComponentDefinition ComponentDefinition { get; set; }
         public ICollection<WorkoutExerciseDefinition> WorkoutExerciseDefinitions { get; set; }
         public int Number { get; set; }
+        public DayType Type { get; set; } = DayType.Training;
     }
 }

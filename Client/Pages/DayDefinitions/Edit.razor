@@ -8,8 +8,8 @@
 
 <div class="rz-m-12">
     <RadzenBreadCrumb>
-        <RadzenBreadCrumbItem Text="SplitDefinitions" />
-        <RadzenBreadCrumbItem Path="@splitDefinitionCrumb" Text="Edit Split Definition" />
+        <RadzenBreadCrumbItem Text="Component Definitions" />
+        <RadzenBreadCrumbItem Path="@componentDefinitionCrumb" Text="Edit Component Definition" />
         <RadzenBreadCrumbItem Style="color:darkseagreen" Text="Edit Day" />
     </RadzenBreadCrumb>
 </div>
@@ -64,7 +64,7 @@ else
     public int Id { get; set; }
     private IEnumerable<WorkoutExerciseDefinition> workoutExerciseDefinitions;
     public DayDefinition dayDefinition = null;
-    string splitDefinitionCrumb = "";
+    string componentDefinitionCrumb = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -72,7 +72,7 @@ else
         {
             dayDefinition = await Http.GetFromJsonAsync<DayDefinition>($"api/DayDefinitions/{Id}");
             workoutExerciseDefinitions = dayDefinition.WorkoutExerciseDefinitions;
-            splitDefinitionCrumb = $"/SplitDefinitions/Edit/{dayDefinition.SplitDefinitionId}";
+            componentDefinitionCrumb = $"/ComponentDefinitions/Edit/{dayDefinition.ComponentDefinitionId}";
             StateHasChanged();
         }
         catch (AccessTokenNotAvailableException exception)
@@ -109,7 +109,7 @@ else
                 var response = await Http.DeleteAsync($"api/DayDefinitions/{Id}");
                 if (response.IsSuccessStatusCode)
                 {
-                    NavManager.NavigateTo($"/SplitDefinitions/Edit/{dayDefinition.SplitDefinitionId}");
+                    NavManager.NavigateTo($"/SplitDefinitions/Edit/{dayDefinition.ComponentDefinitionId}");
                     NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Day Definition Deleted", Detail = "", Duration = 5000 });
                 }
                 else

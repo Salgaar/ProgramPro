@@ -1,0 +1,312 @@
+﻿@using ProgramPro.Shared.Models.DataTransferObjects;
+@inject NavigationManager NavManager
+@inject HttpClient Http
+@inject NotificationService NotificationService
+@inject ContextMenuService ContextMenuService
+@inject DialogService DialogService
+
+<RadzenRow>
+    <RadzenColumn Size="2" Style="text-align:right">
+        <RadzenButton Text="Add Day" Click=@((args) => AddDayClickedMenu(args, ComponentDefinition)) />
+    </RadzenColumn>
+</RadzenRow>
+
+<div class="calendar">
+    @{
+        double divide = (double)ComponentDefinition.DayDefinitions.Count / 5;
+        double timesToRun = Math.Ceiling(divide);
+        int daysRan = 0;
+    }
+
+    <div>
+
+
+                <div class="component">
+
+            @if (ComponentDefinition.DayDefinitions.Count > 0)
+            {
+                @for (int i = 0; i < timesToRun && daysRan < ComponentDefinition.DayDefinitions.Count; i++)
+                {
+                    <div class="days">
+                        @for (int k = 1; k <= 5 && daysRan < ComponentDefinition.DayDefinitions.Count; k++, daysRan++)
+                        {
+                            var dayDefinition = ComponentDefinition.DayDefinitions.ToList()[daysRan];
+
+                            <div class="day" @onclick="(args) => DayClickedMenu(args, dayDefinition)">
+                                <div class="day-number">
+                                    @dayDefinition.Number
+                                </div>
+                                @if (dayDefinition.Type == DayType.Rest)
+                                {
+                                    <p>rest day</p>
+                                }
+                                else if (dayDefinition.WorkoutExerciseDefinitions.Count == 0)
+                                {
+                                    <p>empty training day</p>
+                                }
+                                else
+                                {
+                                    @foreach (var workoutExercise in dayDefinition.WorkoutExerciseDefinitions)
+                                    {
+                                        <p style="margin-bottom:5px">@workoutExercise.Exercise.Name: @workoutExercise.SetDefinitions.Count sets</p>
+                                    }
+                                }
+                            </div>
+                        }
+                    </div>
+
+                }
+            }
+                </div>
+
+    </div>
+
+
+
+
+</div>
+
+
+@code {
+    [Parameter]
+    public ComponentDefinition ComponentDefinition { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+
+    private async Task DeleteDay(DayDefinition dayDefinition)
+    {
+        var response = await Http.DeleteAsync($"api/DayDefinitions/{dayDefinition.Id}");
+        if (response.IsSuccessStatusCode)
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Success", Detail = "Deleted Day Definition", Duration = 5000 });
+            await UpdateComponent();
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = response.ReasonPhrase, Duration = 5000 });
+        }
+    }
+
+    /// <summary>
+    /// Adds a day to a split
+    /// </summary>
+    /// <param name="day"></param>
+    /// <returns></returns>
+
+    private async Task AddDay(ComponentDefinition componentDefinition, DayType dayType = DayType.Training)
+    {
+        var result = await Http.PostAsJsonAsync("api/DayDefinitions", new DayDefinition { Number = GetDayDefinitionNumber(), ComponentDefinitionId = componentDefinition.Id, Type = dayType });
+        if (result.IsSuccessStatusCode)
+        {
+            if (dayType == DayType.Training)
+            {
+                var dayDefinition = await result.Content.ReadFromJsonAsync<DayDefinition>();
+                NavManager.NavigateTo($"/DayDefinitions/Edit/{dayDefinition.Id}");
+            }
+            else
+            {
+                await UpdateComponent();
+            }
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = result.ReasonPhrase, Duration = 5000 });
+        }
+    }
+
+    async Task UpdateComponent()
+    {
+        ComponentDefinition = await Http.GetFromJsonAsync<ComponentDefinition>($"api/ComponentDefinitions/{ComponentDefinition.Id}");
+        ComponentDefinition.DayDefinitions = ComponentDefinition.DayDefinitions.OrderBy(x => x.Number).ToList();
+        StateHasChanged();
+    }
+
+    int GetDayDefinitionNumber()
+    {
+
+        if (ComponentDefinition.DayDefinitions.Count > 0)
+        {
+            int highestNumber = ComponentDefinition.DayDefinitions.ToList()[0].Number;
+            foreach (var day in ComponentDefinition.DayDefinitions)
+            {
+                if (day.Number > highestNumber)
+                {
+                    highestNumber = day.Number;
+                }
+            }
+            return highestNumber;
+        }
+        else
+        {
+            return 1;
+        }
+
+    }
+
+    private async Task OverwriteDayDefinition(DayDefinition dayDefinition, DayType dayType = DayType.Training)
+    {
+        var result = await Http.PostAsJsonAsync($"api/DayDefinitions/Overwrite", new OverwriteDayDefinition { ToAdd = new DayDefinition { Number = dayDefinition.Number, ComponentDefinitionId = dayDefinition.ComponentDefinitionId, Type = dayType }, ToDelete = dayDefinition });
+        if (result.IsSuccessStatusCode)
+        {
+            if (dayType == DayType.Training)
+            {
+                dayDefinition = await result.Content.ReadFromJsonAsync<DayDefinition>();
+                NavManager.NavigateTo($"/DayDefinitions/Edit/{dayDefinition.Id}");
+            }
+            else
+            {
+                await UpdateComponent();
+            }
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = result.ReasonPhrase, Duration = 5000 });
+        }
+    }
+
+    void AddDayClickedMenu(MouseEventArgs args, ComponentDefinition componentDefinition)
+    {
+        ContextMenuService.Open(args,
+            new List<ContextMenuItem> {
+                new ContextMenuItem(){ Text = "Training Day", Value = new MenuItemValue { ComponentDefinition = componentDefinition, Choice = 1 } },
+                new ContextMenuItem(){ Text = "Rest Day", Value = new MenuItemValue { ComponentDefinition = componentDefinition, Choice = 2 } }
+                                             }, AddDayMenuClicked);
+    }
+
+    void AddDayMenuClicked(MenuItemEventArgs args)
+    {
+        ContextMenuService.Close();
+        var value = args.Value as MenuItemValue;
+        if (value.Choice == 1)
+        {
+            AddDay(value.ComponentDefinition).ConfigureAwait(false);
+        }
+        else if (value.Choice == 2)
+        {
+            AddDay(value.ComponentDefinition, DayType.Rest).ConfigureAwait(false);
+        }
+    }
+
+    void OverwriteDayClickedMenu(MouseEventArgs args, DayDefinition dayDefinition)
+    {
+        ContextMenuService.Open(args,
+            new List<ContextMenuItem> {
+                new ContextMenuItem(){ Text = "Training Day", Value = new MenuItemValue { DayDefinition = dayDefinition, Choice = 1 } },
+                new ContextMenuItem(){ Text = "Rest Day", Value = new MenuItemValue { DayDefinition = dayDefinition, Choice = 2 } }
+                                                 }, OverwriteDayMenuClicked);
+    }
+
+    void OverwriteDayMenuClicked(MenuItemEventArgs args)
+    {
+        ContextMenuService.Close();
+        var value = args.Value as MenuItemValue;
+        if (value.Choice == 1)
+        {
+            OverwriteDayDefinition(value.DayDefinition).ConfigureAwait(false);
+        }
+        else if (value.Choice == 2)
+        {
+            OverwriteDayDefinition(value.DayDefinition, DayType.Rest).ConfigureAwait(false);
+        }
+    }
+
+    void DayClickedMenu(MouseEventArgs args, DayDefinition dayDefinition)
+    {
+        ContextMenuService.Open(args,
+            new List<ContextMenuItem> {
+                new ContextMenuItem(){ Text = "Edit Day Definition", Value = new MenuItemValue { DayDefinition = dayDefinition, Choice = 1 } },
+                new ContextMenuItem(){ Text = "Overwrite Day Definition", Value = new MenuItemValue { DayDefinition = dayDefinition, Choice = 2 } },
+                new ContextMenuItem(){ Text = "Delete Day Definition", Value = new MenuItemValue { DayDefinition = dayDefinition, Choice = 3 } }
+                                         }, DayMenuClicked);
+    }
+
+    void DayMenuClicked(MenuItemEventArgs args)
+    {
+        ContextMenuService.Close();
+        var value = args.Value as MenuItemValue;
+        if (value.Choice == 1)
+        {
+            NavManager.NavigateTo($"/DayDefinitions/Edit/{value.DayDefinition.Id}");
+        }
+        else if (value.Choice == 2)
+        {
+            OverwriteDayClickedMenu(args, value.DayDefinition);
+        }
+        else if (value.Choice == 3)
+        {
+            DeleteDay(value.DayDefinition).ConfigureAwait(false);
+        }
+    }
+
+    private class MenuItemValue
+    {
+        public DayDefinition DayDefinition { get; set; }
+        public ComponentDefinition ComponentDefinition { get; set; }
+        public int Choice { get; set; }
+    }
+}
+
+<style>
+    .calendar {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        background-color: #38474e; /* Brug websites baggrundsfarve */
+        color: #fff;
+        margin-top: 20px;
+        box-shadow: var(--rz-card-shadow);
+        border-radius: 5px;
+    }
+
+    .component {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        margin-bottom: 10px;
+        margin-top:10px;
+    }
+
+    .days {
+        display: flex;
+        flex-grow: 1;
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+
+    .day {
+        width: calc(100% / 5);
+        padding: 5px;
+        margin-left: 5px;
+        margin-right: 5px;
+        cursor: pointer;
+        height: auto;
+        min-height: 75px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        border: var(--rz-input-border);
+        border-radius: var(--rz-input-border-radius);
+        box-shadow: var(--rz-input-shadow);
+        background-color: var(--rz-input-background-color);
+    }
+
+        .day:hover {
+            transition: background-color .2s ease-in;
+            background-color: darkseagreen;
+        }
+
+    .day-number {
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+</style>

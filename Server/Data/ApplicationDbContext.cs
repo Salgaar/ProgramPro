@@ -30,11 +30,11 @@ namespace ProgramPro.Server.Data
         public DbSet<PersonalRecord> PersonalRecords { get; set; }
         public DbSet<Set> Set { get; set; }
         public DbSet<WorkoutExercise> WorkoutExercises { get; set; }
-        public DbSet<SplitDefinition> SplitDefinitions { get; set; }
+        public DbSet<ComponentDefinition> ComponentDefinitions { get; set; }
         public DbSet<DayDefinition> DayDefinitions { get; set; }
         public DbSet<WorkoutExerciseDefinition> WorkoutExerciseDefinitions { get; set; }
         public DbSet<SetDefinition> SetDefinitions { get; set; }
-        public DbSet<Split> Splits { get; set; }
+        public DbSet<Component> Components { get; set; }
 
 
 
@@ -49,7 +49,7 @@ namespace ProgramPro.Server.Data
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<ApplicationUser>()
-                .HasMany(user => user.SplitDefinitions)
+                .HasMany(user => user.ComponentDefinitions)
                 .WithOne(splitDefinition => splitDefinition.ApplicationUser)
                 .HasForeignKey(splitDefinition => splitDefinition.ApplicationUserId)
                 .OnDelete(DeleteBehavior.Cascade);
@@ -61,15 +61,15 @@ namespace ProgramPro.Server.Data
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<TrainingProgram>()
-                .HasMany(p => p.Splits)
+                .HasMany(p => p.Components)
                 .WithOne(c => c.TrainingProgram)
                 .HasForeignKey(x => x.TrainingProgramId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<Split>()
+            modelBuilder.Entity<Component>()
                 .HasMany(p => p.Days)
-                .WithOne(c => c.Split)
-                .HasForeignKey(x => x.SplitId)
+                .WithOne(c => c.Component)
+                .HasForeignKey(x => x.ComponentId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Day>()
@@ -108,10 +108,10 @@ namespace ProgramPro.Server.Data
                 .HasForeignKey(x => x.SetId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<SplitDefinition>()
+            modelBuilder.Entity<ComponentDefinition>()
                 .HasMany(p => p.DayDefinitions)
-                .WithOne(c => c.SplitDefinition)
-                .HasForeignKey(x => x.SplitDefinitionId)
+                .WithOne(c => c.ComponentDefinition)
+                .HasForeignKey(x => x.ComponentDefinitionId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<DayDefinition>()

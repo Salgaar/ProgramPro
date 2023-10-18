@@ -1,0 +1,108 @@
+﻿@page "/ComponentDefinitions/Edit/{Id}"
+@inject HttpClient Http
+@inject DialogService DialogService
+@inject NotificationService NotificationService
+@inject NavigationManager NavManager
+
+<div class="rz-m-12">
+    <RadzenBreadCrumb>
+        <RadzenBreadCrumbItem Path="/ComponentDefinitions" Text="Component Definitions" />
+        <RadzenBreadCrumbItem Style="color:darkseagreen" Text="Edit" />
+    </RadzenBreadCrumb>
+</div>
+
+@if (ComponentDefinition == null)
+{
+    <RadzenRow Style="padding:100px">
+        <div style="margin:auto; text-align:center;">
+            <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Primary" Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+        </div>
+    </RadzenRow>
+}
+else
+{
+    <RadzenRow Style="margin-bottom:10px">
+            <RadzenColumn>
+                <RadzenButton Style="float:right;" ButtonStyle="ButtonStyle.Success" Click=@(async() => await Save())>Save</RadzenButton>
+            </RadzenColumn>
+        <RadzenColumn Style="float:right;">
+            <RadzenButton ButtonStyle="ButtonStyle.Danger" Text="Delete Component" Click=@(async() => await DeleteComponent(ComponentDefinition)) />
+        </RadzenColumn>
+    </RadzenRow>
+    <RadzenRow Style="margin-bottom:10px">
+        <RadzenColumn>
+            <RadzenCard>
+                <RadzenRow>
+                    <RadzenColumn Size="6">
+
+                        <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H3">Name</RadzenText>
+                        <RadzenTextBox @bind-Value="ComponentDefinition.Name" class="w-100" />
+
+                    </RadzenColumn>
+                    <RadzenColumn Size="6">
+
+                        <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H3">Description</RadzenText>
+                        <RadzenTextArea @bind-Value="ComponentDefinition.Description" class="w-100" />
+
+                    </RadzenColumn>
+                </RadzenRow>
+            </RadzenCard>
+            
+        </RadzenColumn>
+    </RadzenRow>
+    <ComponentDefinitionCalendar ComponentDefinition=@ComponentDefinition />
+}
+
+
+@code {
+    [Parameter] 
+    public string Id { get; set; }
+    public ComponentDefinition ComponentDefinition { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            ComponentDefinition = await Http.GetFromJsonAsync<ComponentDefinition>($"api/ComponentDefinitions/{Id}");
+            StateHasChanged();
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+
+    async Task UpdateComponent()
+    {
+        ComponentDefinition = await Http.GetFromJsonAsync<ComponentDefinition>($"api/ComponentDefinitions/{ComponentDefinition.Id}");
+        ComponentDefinition.DayDefinitions = ComponentDefinition.DayDefinitions.OrderBy(x => x.Number).ToList();
+        StateHasChanged();
+    }
+
+    private async Task DeleteComponent(ComponentDefinition componentDefinition)
+    {
+        var response = await Http.DeleteAsync($"api/ComponentDefinitions/{componentDefinition.Id}");
+        if (response.IsSuccessStatusCode)
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Success", Detail = "Component Definition Deleted", Duration = 5000 });
+            NavManager.NavigateTo("ComponentDefinitions");
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error Deleting Component Definition", Detail = response.ReasonPhrase, Duration = 5000 });
+        }
+    }
+
+    private async Task Save()
+    {
+        var response = await Http.PutAsJsonAsync($"api/ComponentDefinitions/{ComponentDefinition.Id}", ComponentDefinition);
+        if (response.IsSuccessStatusCode)
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Component Definition changes saved", Detail = "", Duration = 5000 });
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error saving changes", Detail = response.ReasonPhrase, Duration = 5000 });
+        }
+    }
+}

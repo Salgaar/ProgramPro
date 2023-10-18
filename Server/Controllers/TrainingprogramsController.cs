@@ -33,16 +33,25 @@ namespace ProgramPro.Server.Controllers
         [HttpGet]
         public async Task<ActionResult<string>> GetTrainingprograms()
         {
-            var programs = _context.TrainingPrograms;
+            var programs = await _context.TrainingPrograms.ToListAsync();
                 /*.Where(x => x.ApplicationUserId == UserHelper.GetUserId(User))*/
 
             foreach (var program in programs)
             {
                 await _context.Entry(program)
-                        .Collection(x => x.Splits)
+                        .Collection(x => x.Components)
                         .Query()
                         .Include(x => x.Days)
                         .LoadAsync();
+
+                foreach(var split in program.Components)
+                {
+                    await _context.Entry(split)
+                        .Collection(x => x.Days)
+                        .Query()
+                        .Include(x => x.WorkoutExercises)
+                        .LoadAsync();
+                }
             }
 
             return JsonConvert.SerializeObject(programs, Extensions.JsonOptions.jsonSettings);
@@ -61,13 +70,13 @@ namespace ProgramPro.Server.Controllers
             {
                 // Explicitly load the related data for the training program
                 await _context.Entry(trainingprogram)
-                    .Collection(x => x.Splits)
+                    .Collection(x => x.Components)
                     .Query()
                     .Include(x => x.Days)
                     .LoadAsync();
 
                 // Load related data for WorkoutExercises, Sets, and Exercise
-                foreach (var split in trainingprogram.Splits)
+                foreach (var split in trainingprogram.Components)
                 {
                     foreach(var day in split.Days)
                     {

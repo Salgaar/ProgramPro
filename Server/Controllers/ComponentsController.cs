@@ -13,67 +13,59 @@ namespace ProgramPro.Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class SplitsController : ControllerBase
+    public class ComponentsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
 
-        public SplitsController(ApplicationDbContext context)
+        public ComponentsController(ApplicationDbContext context)
         {
             _context = context;
         }
 
         // GET: api/Splits
         [HttpGet]
-        public async Task<ActionResult<string>> GetSplits()
+        public async Task<ActionResult<string>> GetComponents()
         {
-            var splits = _context.Splits;
+            var components = await _context.Components.ToListAsync();
             /*.Where(x => x.ApplicationUserId == UserHelper.GetUserId(User))*/
 
-            foreach (var split in splits)
+            foreach (var component in components)
             {
-                await _context.Entry(split)
+                await _context.Entry(component)
                         .Collection(x => x.Days)
                         .Query()
                         .Include(x => x.WorkoutExercises)
                         .LoadAsync();
-                foreach(var day in split.Days)
-                {
-                    await _context.Entry(day)
-                        .Collection(x => x.WorkoutExercises)
-                        .Query()
-                        .Include(x => x.Sets)
-                        .LoadAsync();
-                }
             }
 
-            return JsonConvert.SerializeObject(splits, Extensions.JsonOptions.jsonSettings);
+            return JsonConvert.SerializeObject(components, Extensions.JsonOptions.jsonSettings);
         }
 
         // GET: api/Splits/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Split>> GetSplit(int id)
+        public async Task<ActionResult<Component>> GetComponent(int id)
         {
-            var split = await _context.Splits.FindAsync(id);
+            var component = await _context.Components.FindAsync(id);
 
-            if (split == null)
+            if (component == null)
             {
                 return NotFound();
             }
 
-            return split;
+            return component;
         }
 
         // PUT: api/Splits/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutSplit(int id, Split split)
+        public async Task<IActionResult> PutComponent(int id, Component component)
         {
-            if (id != split.Id)
+            if (id != component.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(split).State = EntityState.Modified;
+            _context.Entry(component).State = EntityState.Modified;
 
             try
             {
@@ -81,7 +73,7 @@ namespace ProgramPro.Server.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!SplitExists(id))
+                if (!ComponentExists(id))
                 {
                     return NotFound();
                 }
@@ -97,33 +89,43 @@ namespace ProgramPro.Server.Controllers
         // POST: api/Splits
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Split>> PostSplit(Split split)
+        public async Task<ActionResult<Component>> PostComponent(Component component)
         {
-            _context.Splits.Add(split);
+            _context.Components.Add(component);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetSplit", new { id = split.Id }, split);
+            return CreatedAtAction("GetComponent", new { id = component.Id }, component);
         }
 
         // DELETE: api/Splits/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteSplit(int id)
+        public async Task<IActionResult> DeleteComponent(int id)
         {
-            var split = await _context.Splits.FindAsync(id);
-            if (split == null)
+            var component = await _context.Components.FindAsync(id);
+            if (component == null)
             {
                 return NotFound();
             }
 
-            _context.Splits.Remove(split);
+            var components = await _context.Components.Where(x => x.TrainingProgramId == component.TrainingProgramId).ToListAsync();
+            foreach(var item in components)
+            {
+                if(item.ComponentNumber > component.ComponentNumber)
+                {
+                    item.ComponentNumber -= 1;
+                    _context.Components.Update(item);
+                }
+            }
+
+            _context.Components.Remove(component);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool SplitExists(int id)
+        private bool ComponentExists(int id)
         {
-            return _context.Splits.Any(e => e.Id == id);
+            return _context.Components.Any(e => e.Id == id);
         }
     }
 }

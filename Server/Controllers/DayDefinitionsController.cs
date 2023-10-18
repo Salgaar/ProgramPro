@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using ProgramPro.Server.Data;
 using ProgramPro.Shared.Models;
+using ProgramPro.Shared.Models.DataTransferObjects;
 
 namespace ProgramPro.Server.Controllers
 {
@@ -88,15 +89,43 @@ namespace ProgramPro.Server.Controllers
             return NoContent();
         }
 
+        [HttpPost("Overwrite")]
+        public async Task<ActionResult<DayDefinition>> OverwriteDayDefinition(OverwriteDayDefinition overwriteDayDefinition)
+        {
+            if (ModelState.IsValid)
+            {
+                _context.DayDefinitions.Remove(overwriteDayDefinition.ToDelete);
+                _context.DayDefinitions.Add(overwriteDayDefinition.ToAdd);
+                await _context.SaveChangesAsync();
+
+                return CreatedAtAction("GetDay", new { id = overwriteDayDefinition.ToAdd.Id }, JsonConvert.SerializeObject(overwriteDayDefinition.ToAdd, Extensions.JsonOptions.jsonSettings));
+            }
+            else
+            {
+                return BadRequest(ModelState);
+            }
+        }
+
         // POST: api/DayDefinitions
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<DayDefinition>> PostDayDefinition(DayDefinition dayDefinition)
         {
+            var componentDefinition = await _context.ComponentDefinitions.Include(x => x.DayDefinitions).FirstOrDefaultAsync(x => x.Id == dayDefinition.ComponentDefinitionId);
+
+            foreach (var d in componentDefinition.DayDefinitions)
+            {
+                if (d.Number > dayDefinition.Number)
+                {
+                    d.Number = d.Number + 1;
+                    _context.DayDefinitions.Update(d);
+                }
+            }
+
             _context.DayDefinitions.Add(dayDefinition);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetDayDefinition", new { id = dayDefinition.Id }, dayDefinition);
+            return CreatedAtAction("GetDayDefinition", new { id = dayDefinition.Id }, JsonConvert.SerializeObject(dayDefinition, Extensions.JsonOptions.jsonSettings));
         }
 
         // DELETE: api/DayDefinitions/5
@@ -107,6 +136,16 @@ namespace ProgramPro.Server.Controllers
             if (dayDefinition == null)
             {
                 return NotFound();
+            }
+
+            var componentDefinition = await _context.ComponentDefinitions.Include(x => x.DayDefinitions).FirstOrDefaultAsync(x => x.Id == dayDefinition.ComponentDefinitionId);
+            foreach (var d in componentDefinition.DayDefinitions)
+            {
+                if (d.Number > dayDefinition.Number)
+                {
+                    d.Number = d.Number - 1;
+                    _context.DayDefinitions.Update(d);
+                }
             }
 
             _context.DayDefinitions.Remove(dayDefinition);

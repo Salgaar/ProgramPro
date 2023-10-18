@@ -7,8 +7,8 @@ namespace ProgramPro.Shared.Models
         [Key]
         public int Id { get; set; }
         [Required]
-        public int SplitId { get; set; }
-        public Split Split { get; set; }
+        public int ComponentId { get; set; }
+        public Component Component { get; set; }
         public ICollection<WorkoutExercise> WorkoutExercises { get; set; }
         public DateTime Date { get; set; }
         public DayType Type { get; set; } = DayType.Training;

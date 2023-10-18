@@ -72,7 +72,7 @@ else
         {
             day = await Http.GetFromJsonAsync<Day>($"api/Days/{Id}");
             workoutExercises = day.WorkoutExercises;
-            programCrumb = $"/Programs/Edit/{day.Split.TrainingProgramId}";
+            programCrumb = $"/Programs/Edit/{day.Component.TrainingProgramId}";
             StateHasChanged();
         }
         catch (AccessTokenNotAvailableException exception)
@@ -110,7 +110,7 @@ else
                 var response = await Http.DeleteAsync($"api/Days/{Id}");
                 if (response.IsSuccessStatusCode)
                 {
-                    NavManager.NavigateTo($"/Programs/Edit/{day.Split.TrainingProgramId}");
+                    NavManager.NavigateTo($"/Programs/Edit/{day.Component.TrainingProgramId}");
                     NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Day Deleted", Detail = "", Duration = 5000 });
                 }
                 else
