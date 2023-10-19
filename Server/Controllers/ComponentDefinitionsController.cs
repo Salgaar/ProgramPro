@@ -26,21 +26,21 @@ namespace ProgramPro.Server.Controllers
 
         // GET: api/SplitDefinitions
         [HttpGet]
-        public async Task<ActionResult<string>> GetSplitDefinitions()
+        public async Task<ActionResult<string>> GetComponentDefinitions()
         {
-            var splitDefinitions = await _context.ComponentDefinitions.ToListAsync();
+            var componentDefinitions = await _context.ComponentDefinitions.ToListAsync();
 
-            if (splitDefinitions != null)
+            if (componentDefinitions != null)
             {
                 // Explicitly load the related data for the training program
-                for(int i = 0; i < splitDefinitions.Count; i++)
+                for(int i = 0; i < componentDefinitions.Count; i++)
                 {
-                    await _context.Entry(splitDefinitions[i])
+                    await _context.Entry(componentDefinitions[i])
                         .Collection(x => x.DayDefinitions)
                         .Query()
                         .LoadAsync();
 
-                    var dayDefinitions = splitDefinitions[i].DayDefinitions.ToList();
+                    var dayDefinitions = componentDefinitions[i].DayDefinitions.ToList();
                     for(int j = 0; j < dayDefinitions.Count; j++)
                     {
                         await _context.Entry(dayDefinitions[j])
@@ -57,28 +57,28 @@ namespace ProgramPro.Server.Controllers
                 return NotFound();
             }
 
-            return JsonConvert.SerializeObject(splitDefinitions, Extensions.JsonOptions.jsonSettings);
+            return JsonConvert.SerializeObject(componentDefinitions, Extensions.JsonOptions.jsonSettings);
         }
 
         // GET: api/SplitDefinitions/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<string>> GetSplitDefinition(int id)
+        public async Task<ActionResult<string>> GetComponentDefinition(int id)
         {
             // First, load the TrainingProgram
-            var splitDefinition = await _context.ComponentDefinitions
+            var componentDefinition = await _context.ComponentDefinitions
                 .Where(x => x.Id == id)
                 .FirstOrDefaultAsync();
 
-            if (splitDefinition != null)
+            if (componentDefinition != null)
             {
                 // Explicitly load the related data for the training program
-                await _context.Entry(splitDefinition)
+                await _context.Entry(componentDefinition)
                     .Collection(x => x.DayDefinitions)
                     .Query()
                     .LoadAsync();
 
                 // Load related data for WorkoutExercises, Sets, and Exercise
-                foreach (var day in splitDefinition.DayDefinitions)
+                foreach (var day in componentDefinition.DayDefinitions)
                 {
                     await _context.Entry(day)
                         .Collection(x => x.WorkoutExerciseDefinitions)
@@ -93,20 +93,20 @@ namespace ProgramPro.Server.Controllers
                 return NotFound();
             }
 
-            return JsonConvert.SerializeObject(splitDefinition, Extensions.JsonOptions.jsonSettings);
+            return JsonConvert.SerializeObject(componentDefinition, Extensions.JsonOptions.jsonSettings);
         }
 
         // PUT: api/SplitDefinitions/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutSplitDefinition(int id, ComponentDefinition splitDefinition)
+        public async Task<IActionResult> PutComponentDefinition(int id, ComponentDefinition componentDefinition)
         {
-            if (id != splitDefinition.Id)
+            if (id != componentDefinition.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(splitDefinition).State = EntityState.Modified;
+            _context.Entry(componentDefinition).State = EntityState.Modified;
 
             try
             {
@@ -114,7 +114,7 @@ namespace ProgramPro.Server.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!SplitDefinitionExists(id))
+                if (!ComponentDefinitionExists(id))
                 {
                     return NotFound();
                 }
@@ -130,31 +130,31 @@ namespace ProgramPro.Server.Controllers
         // POST: api/SplitDefinitions
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<ComponentDefinition>> PostSplitDefinition(ComponentDefinition splitDefinition)
+        public async Task<ActionResult<ComponentDefinition>> PostComponentDefinition(ComponentDefinition componentDefinition)
         {
-            _context.ComponentDefinitions.Add(splitDefinition);
+            _context.ComponentDefinitions.Add(componentDefinition);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetSplitDefinition", new { id = splitDefinition.Id }, splitDefinition);
+            return CreatedAtAction("GetComponentDefinition", new { id = componentDefinition.Id }, componentDefinition);
         }
 
         // DELETE: api/SplitDefinitions/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteSplitDefinition(int id)
+        public async Task<IActionResult> DeleteComponentDefinition(int id)
         {
-            var splitDefinition = await _context.ComponentDefinitions.FindAsync(id);
-            if (splitDefinition == null)
+            var componentDefinition = await _context.ComponentDefinitions.FindAsync(id);
+            if (componentDefinition == null)
             {
                 return NotFound();
             }
 
-            _context.ComponentDefinitions.Remove(splitDefinition);
+            _context.ComponentDefinitions.Remove(componentDefinition);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool SplitDefinitionExists(int id)
+        private bool ComponentDefinitionExists(int id)
         {
             return _context.ComponentDefinitions.Any(e => e.Id == id);
         }

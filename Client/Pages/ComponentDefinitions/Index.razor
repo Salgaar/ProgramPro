@@ -33,6 +33,9 @@
                     <RadzenColumn>
                         <RadzenButton Click="@(() => EditComponentDefinition(componentDefinition.Id))">Edit</RadzenButton>
                     </RadzenColumn>
+                    <RadzenColumn>
+                        <RadzenButton ButtonStyle="ButtonStyle.Danger" Click="@(async() => await DeleteComponentDefinition(componentDefinition.Id))">Delete</RadzenButton>
+                    </RadzenColumn>
                 </RadzenRow>
             </Template>
         </RadzenDataList>
@@ -68,6 +71,21 @@
         {
             var ComponentDefinition = await result.Content.ReadFromJsonAsync<ComponentDefinition>();
             Nav.NavigateTo($"/ComponentDefinitions/Edit/{ComponentDefinition.Id}");
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = result.ReasonPhrase, Duration = 20000 });
+        }
+    }
+
+    private async Task DeleteComponentDefinition(int id)
+    {
+        var result = await Http.DeleteAsync($"api/ComponentDefinitions/{id}");
+        if (result.IsSuccessStatusCode)
+        {
+            componentDefinitions = await Http.GetFromJsonAsync<List<ComponentDefinition>>("api/ComponentDefinitions");
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Success", Detail = "Components Deleted", Duration = 20000 });
+            StateHasChanged();
         }
         else
         {

@@ -7,7 +7,7 @@
 
 <RadzenRow>
     <RadzenColumn Size="2" Style="text-align:right">
-        <RadzenButton Text="Add Day" Click=@((args) => AddDayClickedMenu(args, ComponentDefinition)) />
+        <RadzenButton ButtonStyle="ButtonStyle.Success" Text="Add Day" Click=@((args) => AddDayClickedMenu(args, ComponentDefinition)) />
     </RadzenColumn>
 </RadzenRow>
 
@@ -75,6 +75,8 @@
     {
         try
         {
+            ComponentDefinition.DayDefinitions = ComponentDefinition.DayDefinitions.OrderBy(x => x.Number).ToList();
+            StateHasChanged();
         }
         catch (AccessTokenNotAvailableException exception)
         {
@@ -132,7 +134,6 @@
 
     int GetDayDefinitionNumber()
     {
-
         if (ComponentDefinition.DayDefinitions.Count > 0)
         {
             int highestNumber = ComponentDefinition.DayDefinitions.ToList()[0].Number;
@@ -143,14 +144,14 @@
                     highestNumber = day.Number;
                 }
             }
-            return highestNumber;
+            return highestNumber + 1;
         }
         else
         {
             return 1;
         }
 
-    }
+    }                                                                                                                             
 
     private async Task OverwriteDayDefinition(DayDefinition dayDefinition, DayType dayType = DayType.Training)
     {

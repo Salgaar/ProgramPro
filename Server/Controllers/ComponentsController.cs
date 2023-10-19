@@ -36,6 +36,16 @@ namespace ProgramPro.Server.Controllers
                         .Query()
                         .Include(x => x.WorkoutExercises)
                         .LoadAsync();
+
+                foreach(var day in component.Days)
+                {
+                    await _context.Entry(day)
+                        .Collection(x => x.WorkoutExercises)
+                        .Query()
+                        .Include(x => x.Sets)
+                        .Include(x => x.Exercise)
+                        .LoadAsync();
+                }
             }
 
             return JsonConvert.SerializeObject(components, Extensions.JsonOptions.jsonSettings);
@@ -101,17 +111,22 @@ namespace ProgramPro.Server.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteComponent(int id)
         {
-            var component = await _context.Components.FindAsync(id);
+            var component = await _context.Components.Include(x => x.Days).FirstOrDefaultAsync(x => x.Id == id);
             if (component == null)
             {
                 return NotFound();
             }
 
-            var components = await _context.Components.Where(x => x.TrainingProgramId == component.TrainingProgramId).ToListAsync();
+            var components = await _context.Components.Include(x => x.Days).Where(x => x.TrainingProgramId == component.TrainingProgramId).ToListAsync();
             foreach(var item in components)
             {
                 if(item.ComponentNumber > component.ComponentNumber)
                 {
+                    foreach(var day in item.Days)
+                    {
+                        day.Date = day.Date.AddDays(-component.Days.Count);
+                        _context.Days.Update(day);
+                    }
                     item.ComponentNumber -= 1;
                     _context.Components.Update(item);
                 }

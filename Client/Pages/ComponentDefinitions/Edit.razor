@@ -22,9 +22,6 @@
 else
 {
     <RadzenRow Style="margin-bottom:10px">
-            <RadzenColumn>
-                <RadzenButton Style="float:right;" ButtonStyle="ButtonStyle.Success" Click=@(async() => await Save())>Save</RadzenButton>
-            </RadzenColumn>
         <RadzenColumn Style="float:right;">
             <RadzenButton ButtonStyle="ButtonStyle.Danger" Text="Delete Component" Click=@(async() => await DeleteComponent(ComponentDefinition)) />
         </RadzenColumn>
@@ -36,13 +33,13 @@ else
                     <RadzenColumn Size="6">
 
                         <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H3">Name</RadzenText>
-                        <RadzenTextBox @bind-Value="ComponentDefinition.Name" class="w-100" />
+                        <RadzenTextBox @bind-Value="ComponentDefinition.Name" @bind-Value:after="Save" class="w-100" />
 
                     </RadzenColumn>
                     <RadzenColumn Size="6">
 
                         <RadzenText TextStyle="TextStyle.H5" TagName="TagName.H3">Description</RadzenText>
-                        <RadzenTextArea @bind-Value="ComponentDefinition.Description" class="w-100" />
+                        <RadzenTextArea @bind-Value="ComponentDefinition.Description" @bind-Value:after="Save" class="w-100" />
 
                     </RadzenColumn>
                 </RadzenRow>
@@ -63,8 +60,7 @@ else
     {
         try
         {
-            ComponentDefinition = await Http.GetFromJsonAsync<ComponentDefinition>($"api/ComponentDefinitions/{Id}");
-            StateHasChanged();
+            await UpdateComponent();
         }
         catch (AccessTokenNotAvailableException exception)
         {
@@ -74,7 +70,7 @@ else
 
     async Task UpdateComponent()
     {
-        ComponentDefinition = await Http.GetFromJsonAsync<ComponentDefinition>($"api/ComponentDefinitions/{ComponentDefinition.Id}");
+        ComponentDefinition = await Http.GetFromJsonAsync<ComponentDefinition>($"api/ComponentDefinitions/{Id}");
         ComponentDefinition.DayDefinitions = ComponentDefinition.DayDefinitions.OrderBy(x => x.Number).ToList();
         StateHasChanged();
     }
@@ -98,6 +94,7 @@ else
         var response = await Http.PutAsJsonAsync($"api/ComponentDefinitions/{ComponentDefinition.Id}", ComponentDefinition);
         if (response.IsSuccessStatusCode)
         {
+            await UpdateComponent();
             NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Component Definition changes saved", Detail = "", Duration = 5000 });
         }
         else

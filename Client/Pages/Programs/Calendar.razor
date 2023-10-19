@@ -7,11 +7,11 @@
 
 <RadzenRow Style="margin-top:10px;margin-bottom:30px;">
     <RadzenColumn>
-        <RadzenButton Text="Add Component" Click="AddComponent" />
+        <RadzenButton ButtonStyle="ButtonStyle.Success" Text="Add Component" Click="AddComponent" />
     </RadzenColumn>
 </RadzenRow>
 
-@foreach (Component component in components)
+@foreach (Component component in Components)
 {
     <div class="calendar">
         @{
@@ -31,7 +31,7 @@
                             <RadzenText TextAlign="TextAlign.Right" Text="Name" />
                         </RadzenColumn>
                         <RadzenColumn>
-                            <RadzenTextBox @bind-Value="@component.Name" />
+                            <RadzenTextBox @bind-Value="@component.Name" @bind-Value:after=@(() => Save(component)) />
                         </RadzenColumn>
                        
                         
@@ -43,7 +43,7 @@
                             <RadzenText TextAlign="TextAlign.Right" Text="Description" />
                         </RadzenColumn>
                         <RadzenColumn>
-                            <RadzenTextBox @bind-Value="@component.Description" />
+                            <RadzenTextBox @bind-Value="@component.Description" @bind-Value:after=@(() => Save(component)) />
                         </RadzenColumn>
                         
                         
@@ -51,7 +51,7 @@
                     
                 </RadzenColumn>
                 <RadzenColumn Size="2" Style="text-align:right">
-                    <RadzenButton Text="Add Day" Click=@((args) => NewDayClickedMenu(args, components, component)) />
+                    <RadzenButton ButtonStyle="ButtonStyle.Success" Text="Add Day" Click=@((args) => NewDayClickedMenu(args, Components, component)) />
                 </RadzenColumn>
                 <RadzenColumn Size="2" Style="text-align:right">
                     <RadzenButton ButtonStyle="ButtonStyle.Danger" Text="Delete Split" Click=@(async() => await DeleteComponent(component)) />
@@ -107,13 +107,14 @@
 @code {
     [Parameter]
     public TrainingProgram Program { get; set; }
-    public List<Component> components = new List<Component>();
+    [Parameter]
+    public List<Component> Components { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            UpdateComponents(Program.Components.ToList());
+
         }
         catch (AccessTokenNotAvailableException exception)
         {
@@ -121,9 +122,23 @@
         }
     }
 
+    private async Task Save(Component component)
+    {
+        var response = await Http.PutAsJsonAsync($"api/Components/{component.Id}", component);
+        if (response.IsSuccessStatusCode)
+        {
+            await UpdateComponents();
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Component changes saved", Detail = "", Duration = 5000 });
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error saving changes", Detail = response.ReasonPhrase, Duration = 5000 });
+        }
+    }
+
     private async Task AddComponent()
     {
-        var componentNumber = components.Count + 1;
+        var componentNumber = Components.Count + 1;
         Component component = new Component { Name = "New Component", Description = "", ComponentNumber = componentNumber, TrainingProgramId = Program.Id, Days = new List<Day>() };
         var response = await Http.PostAsJsonAsync("api/Components", component);
         if (response.IsSuccessStatusCode)
@@ -244,7 +259,7 @@
         {
             dbComponent[i].Days = dbComponent[i].Days.OrderBy(x => x.Date).ToList();
         }
-        this.components = dbComponent;
+        this.Components = dbComponent;
         StateHasChanged();
     }
 
@@ -255,7 +270,7 @@
         {
             components[i].Days = components[i].Days.OrderBy(x => x.Date).ToList();
         }
-        this.components = components;
+        this.Components = components;
         StateHasChanged();
     }
 
@@ -405,7 +420,8 @@
                         {
                             Date = date.AddDays(dayDefinitions[i].Number - 1),
                             WorkoutExercises = new List<WorkoutExercise>(),
-                            ComponentId = component.Id
+                            ComponentId = component.Id  ,
+                            Type = dayDefinitions[i].Type
                         };
                     var workoutExerciseDefinitions = dayDefinitions[i].WorkoutExerciseDefinitions.ToList();
                     for (int j = 0; j < workoutExerciseDefinitions.Count; j++)

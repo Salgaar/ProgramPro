@@ -2,6 +2,7 @@
 @inject HttpClient Http
 @inject DialogService DialogService
 @inject NotificationService NotificationService
+@using Microsoft.AspNetCore.Components.Forms
 
 <RadzenRow Style="margin-bottom:20px;">
     <RadzenBreadCrumb>
@@ -21,18 +22,13 @@
 else
 {
     <RadzenRow Style="margin-bottom:10px">
-            <RadzenColumn>
-                <RadzenButton ButtonStyle="ButtonStyle.Success" Click=@(async() => await Save())>Save</RadzenButton>
-            </RadzenColumn>
-    </RadzenRow>
-    <RadzenRow Style="margin-bottom:10px">
         <RadzenColumn>
             <RadzenCard>
                 <RadzenRow>
                     <RadzenColumn Size="4">
 
                         <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H3">Name</RadzenText>
-                        <RadzenTextBox @bind-Value="Program.Name" class="w-100" />
+                        <RadzenTextBox @bind-Value="Program.Name" @bind-Value:after="Save" class="w-100" />
 
                     </RadzenColumn>
                     <RadzenColumn Size="4">
@@ -43,14 +39,14 @@ else
                     </RadzenColumn>
                     <RadzenColumn Size="4">
                         <RadzenText TextStyle="TextStyle.H6" Text="Start Date" />
-                        <RadzenDatePicker DateFormat="d" @bind-Value="@Program.StartDate" class="w-100" />
+                        <RadzenDatePicker DateFormat="d" @bind-Value="@Program.StartDate" @bind-Value:after="Save" class="w-100" />
                     </RadzenColumn>
                 </RadzenRow>
             </RadzenCard>
             
         </RadzenColumn>
     </RadzenRow>
-    <Calendar Program=@Program />
+    <Calendar Program=@Program Components=@Components />
 }
 
 
@@ -58,12 +54,16 @@ else
     [Parameter] 
     public string Id { get; set; }
     public TrainingProgram Program { get; set; }
+    public List<Component> Components { get; set; }
+
+    private System.Timers.Timer timer;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
             Program = await Http.GetFromJsonAsync<TrainingProgram>($"api/Trainingprograms/{Id}");
+            UpdateComponents();
             StateHasChanged();
         }
         catch (AccessTokenNotAvailableException exception)
@@ -72,11 +72,28 @@ else
         }
     }
 
+    void UpdateComponents()
+    {
+        Components = Program.Components.OrderBy(x => x.ComponentNumber).ToList();
+        for (int i = 0; i < Components.Count; i++)
+        {
+            Components[i].Days = Components[i].Days.OrderBy(x => x.Date).ToList();
+        }
+    }
+
+    async Task UpdateProgram()
+    {
+        Program = await Http.GetFromJsonAsync<TrainingProgram>($"api/Trainingprograms/{Id}");
+        UpdateComponents();
+        StateHasChanged();
+    }
+
     private async Task Save()
     {
         var response = await Http.PutAsJsonAsync($"api/Trainingprograms/{Program.Id}", Program);
         if (response.IsSuccessStatusCode)
         {
+            await UpdateProgram();
             NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Program changes saved", Detail = "", Duration = 5000 });
         }
         else

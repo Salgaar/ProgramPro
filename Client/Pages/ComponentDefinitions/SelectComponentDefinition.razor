@@ -4,8 +4,13 @@
 @inject HttpClient Http
 @inject NotificationService NotificationService
 
-<RadzenListBox @bind-Value=@selectedComponentDefinitionId Data=@ComponentDefinitions TextProperty="Name" ValueProperty="Id" Style="width: 100%; height:100%;" />
-<RadzenButton Click=@Submit >Select</RadzenButton>
+<RadzenRow>
+    <RadzenListBox @bind-Value=@selectedComponentDefinitionId Data=@ComponentDefinitions TextProperty="Name" ValueProperty="Id" Style="height:400px; width:100%;" />
+</RadzenRow>
+
+            <RadzenRow>
+    <RadzenButton Click=@Submit>Select</RadzenButton>
+            </RadzenRow>
 
 
 @code {

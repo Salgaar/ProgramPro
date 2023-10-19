@@ -36,6 +36,9 @@
                    <RadzenColumn>
                        <RadzenButton Click="@(() => EditProgram(@trainingProgram.Id))">Edit</RadzenButton>
                    </RadzenColumn>
+                    <RadzenColumn>
+                        <RadzenButton ButtonStyle="ButtonStyle.Danger" Click="@(async() => await DeleteProgram(@trainingProgram.Id))">Delete</RadzenButton>
+                    </RadzenColumn>
                 </RadzenRow>
             </Template>
         </RadzenDataList>
@@ -62,6 +65,21 @@
     private void EditProgram(Guid id)
     {
         Nav.NavigateTo($"/Programs/Edit/{id}");
+    }
+
+    private async Task DeleteProgram(Guid id)
+    {
+        var result = await Http.DeleteAsync($"api/Trainingprograms/{id}");
+        if (result.IsSuccessStatusCode)
+        {
+            programs = await Http.GetFromJsonAsync<List<TrainingProgram>>("api/Trainingprograms");
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Success, Summary = "Success", Detail = "Programs Deleted", Duration = 20000 });
+            StateHasChanged();
+        }
+        else
+        {
+            NotificationService.Notify(new NotificationMessage { Severity = NotificationSeverity.Error, Summary = "Error", Detail = result.ReasonPhrase, Duration = 20000 });
+        }
     }
 
     private async Task MakeNewProgram()

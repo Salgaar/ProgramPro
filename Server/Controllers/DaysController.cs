@@ -186,7 +186,7 @@ namespace ProgramPro.Server.Controllers
                     {
                         foreach (var itemDay in itemSplit.Days)
                         {
-                            itemDay.Date = itemDay.Date.AddDays(1);
+                            itemDay.Date = itemDay.Date.AddDays(days.Count);
                             _context.Days.Update(itemDay);
                         }
                     }

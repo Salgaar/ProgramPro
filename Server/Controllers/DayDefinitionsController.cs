@@ -98,7 +98,7 @@ namespace ProgramPro.Server.Controllers
                 _context.DayDefinitions.Add(overwriteDayDefinition.ToAdd);
                 await _context.SaveChangesAsync();
 
-                return CreatedAtAction("GetDay", new { id = overwriteDayDefinition.ToAdd.Id }, JsonConvert.SerializeObject(overwriteDayDefinition.ToAdd, Extensions.JsonOptions.jsonSettings));
+                return CreatedAtAction("GetDayDefinition", new { id = overwriteDayDefinition.ToAdd.Id }, JsonConvert.SerializeObject(overwriteDayDefinition.ToAdd, Extensions.JsonOptions.jsonSettings));
             }
             else
             {

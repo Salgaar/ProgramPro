@@ -107,11 +107,31 @@ namespace ProgramPro.Server.Controllers
                 return BadRequest();
             }
 
+            var dbProgram = await _context.TrainingPrograms.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
+            if(dbProgram == null)
+            {
+                return BadRequest();
+            }
+
+            if (dbProgram.StartDate != trainingprogram.StartDate)
+            {
+                TimeSpan difference = trainingprogram.StartDate - dbProgram.StartDate;
+                int daysDifference = (int)difference.TotalDays;
+                foreach (var component in trainingprogram.Components)
+                {
+                    foreach (var day in component.Days)
+                    {
+                        day.Date = day.Date.AddDays(daysDifference);
+                        _context.Entry(day).State = EntityState.Modified;
+                    }
+                }
+            }
+
             _context.Entry(trainingprogram).State = EntityState.Modified;
 
             try
             {
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();               
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -143,7 +163,7 @@ namespace ProgramPro.Server.Controllers
 
         // DELETE: api/Trainingprograms/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteTrainingprogram(int id)
+        public async Task<IActionResult> DeleteTrainingprogram(Guid id)
         {
             var trainingprogram = await _context.TrainingPrograms.FindAsync(id);
             if (trainingprogram == null)
