@@ -25,21 +25,26 @@ else
         <RadzenColumn>
             <RadzenCard>
                 <RadzenRow>
-                    <RadzenColumn Size="4">
+                    <RadzenColumn >
 
                         <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H3">Name</RadzenText>
                         <RadzenTextBox @bind-Value="Program.Name" @bind-Value:after="Save" class="w-100" />
 
                     </RadzenColumn>
-                    <RadzenColumn Size="4">
+                    <RadzenColumn >
 
                         <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H3">Description</RadzenText>
                         <RadzenTextArea @bind-Value="Program.Description" class="w-100" />
 
                     </RadzenColumn>
-                    <RadzenColumn Size="4">
+                    <RadzenColumn >
                         <RadzenText TextStyle="TextStyle.H6" Text="Start Date" />
                         <RadzenDatePicker DateFormat="d" @bind-Value="@Program.StartDate" @bind-Value:after="Save" class="w-100" />
+                    </RadzenColumn>
+
+                    <RadzenColumn>
+                        <RadzenText TextStyle="TextStyle.H6" Text="Active" />
+                        <RadzenSwitch @bind-Value=@Program.Active @bind-Value:after="Save" />
                     </RadzenColumn>
                 </RadzenRow>
             </RadzenCard>

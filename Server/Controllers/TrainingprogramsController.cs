@@ -127,6 +127,25 @@ namespace ProgramPro.Server.Controllers
                 }
             }
 
+            if(dbProgram.Active !=  trainingprogram.Active)
+            {
+                if(trainingprogram.Active == true)
+                {
+                    var programs = await _context.TrainingPrograms.AsNoTracking().ToListAsync();
+                    foreach (var program in programs)
+                    {
+                        if (program.Id != trainingprogram.Id)
+                        {
+                            if (program.Active == true)
+                            {
+                                program.Active = false;
+                                _context.Entry(program).State = EntityState.Modified;
+                            }
+                        }
+                    }
+                }
+            }
+
             _context.Entry(trainingprogram).State = EntityState.Modified;
 
             try

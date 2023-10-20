@@ -16,5 +16,6 @@ namespace ProgramPro.Shared.Models
         public ICollection<Goal> Goals { get; set; }
         public ICollection<Component> Components { get; set; }
         public DateTime StartDate { get; set; }
+        public bool Active { get; set; }
     }
 }
