@@ -13,7 +13,7 @@ namespace ProgramPro.Shared.Models
         public bool UsingRIR { get; set; } = false;
         public bool UsingPercentageOfOneRepMax { get; set; } = false;
         public SetType Type { get; set; }
-        public ICollection<Entry> Entries { get; set; }
+        public Entry Entry { get; set; }
     }
     public enum SetType
     {

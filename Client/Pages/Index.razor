@@ -1,19 +1,130 @@
 ﻿@page "/"
 @inject HttpClient Http
 
-    @code {
+@if (entryVisualizerLists.Count == 0)
+{
+    <RadzenRow Style="padding:100px">
+        <div style="margin:auto; text-align:center;">
+            <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Primary" Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+        </div>
+    </RadzenRow>
+}
+else
+{
 
-    protected override async Task OnInitializedAsync()
+        <RadzenRow>
+            <RadzenColumn>
+
+                <RadzenChart ColorScheme="ColorScheme.Divergent">
+                @foreach (var entryVisualizerList in entryVisualizerLists)
+                {
+                    <RadzenLineSeries Smooth="false" LineType="LineType.Solid" Data="@entryVisualizerList.List" CategoryProperty="Date" Title="@(entryVisualizerList.Exercise.Name)" ValueProperty="Weight">
+                        @* <RadzenMarkers MarkerType="MarkerType.Auto" /> *@
+                    </RadzenLineSeries>
+                }
+                    <RadzenCategoryAxis Padding="20" Formatter="@FormatAsMonth" />
+                    <RadzenValueAxis Formatter="@FormatAsWeightInKg">
+                        <RadzenGridLines Visible="true" />
+                        <RadzenAxisTitle Text="WEIGHT IN KG" />
+                    </RadzenValueAxis>
+                </RadzenChart>
+            </RadzenColumn>
+        </RadzenRow>
+
+
+
+}
+
+
+@code {
+    List<EntryVisualizerList> entryVisualizerLists { get; set; } = new List<EntryVisualizerList>();
+
+    protected override void OnInitialized()
     {
         try
         {
-
+            SetEntries();
         }
         catch (AccessTokenNotAvailableException exception)
         {
             exception.Redirect();
         }
     }
+
+    public async void SetEntries()
+    {
+        var trainingPrograms = await Http.GetFromJsonAsync<List<TrainingProgram>>("api/Trainingprograms");
+        await MakeEntryVisualizers(trainingPrograms);
+    }
+
+    private Task MakeEntryVisualizers(List<TrainingProgram> trainingPrograms)
+    {
+        var entryVLists = entryVisualizerLists;
+        foreach (var program in trainingPrograms)
+        {
+            foreach (var component in program.Components)
+            {
+                foreach (var day in component.Days)
+                {
+                    var date = day.Date;
+                    foreach (var workoutExercise in day.WorkoutExercises)
+                    {
+                        var exercise = workoutExercise.Exercise;
+                        bool listExist = false;
+                        foreach (var list in entryVLists)
+                        {
+                            if (list.Exercise.Id == exercise.Id)
+                            {
+                                listExist = true;
+                            }
+                        }
+                        if (!listExist)
+                        {
+                            entryVLists.Add(new EntryVisualizerList
+                                {
+                                    Exercise = exercise
+                                });
+                        }
+
+                        foreach (var set in workoutExercise.Sets)
+                        {
+                            for (int i = 0; i < entryVLists.Count; i++)
+                            {
+                                if (entryVLists[i].Exercise.Id == exercise.Id)
+                                {
+                                    entryVLists[i].List.Add(new EntryVisualizer
+                                        {
+                                            Date = date,
+                                            Exercise = exercise,
+                                            Weight = set.Entry.Weight
+                                        });
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            entryVisualizerLists = entryVLists;
+            StateHasChanged();
+        }
+        return Task.CompletedTask;
+    }
+
+    string FormatAsWeightInKg(object value)
+    {
+        return ((double)value).ToString();
+    }
+
+    string FormatAsMonth(object value)
+    {
+        if (value != null)
+        {
+            return Convert.ToDateTime(value).ToShortDateString();
+        }
+
+        return string.Empty;
+    }
+
 }
 
 

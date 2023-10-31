@@ -40,17 +40,31 @@ namespace ProgramPro.Server.Controllers
             {
                 await _context.Entry(program)
                         .Collection(x => x.Components)
-                        .Query()
-                        .Include(x => x.Days)
                         .LoadAsync();
 
-                foreach(var split in program.Components)
+                foreach(var component in program.Components)
                 {
-                    await _context.Entry(split)
+                    await _context.Entry(component)
                         .Collection(x => x.Days)
-                        .Query()
-                        .Include(x => x.WorkoutExercises)
                         .LoadAsync();
+
+                    foreach (var day in component.Days)
+                    {
+                        await _context.Entry(day)
+                            .Collection(x => x.WorkoutExercises)
+                            .Query()
+                            .Include(x => x.Exercise)
+                            .LoadAsync();
+
+                        foreach (var workoutExercise in day.WorkoutExercises)
+                        {
+                            await _context.Entry(workoutExercise)
+                                .Collection(x => x.Sets)
+                                .Query()
+                                .Include(x => x.Entry)
+                                .LoadAsync();
+                        }
+                    }
                 }
             }
 

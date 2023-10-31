@@ -17,6 +17,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     options.ConfigureWarnings(warnings => warnings.Throw(RelationalEventId.MultipleCollectionIncludeWarning));
     options.UseSqlServer(programProConnectionstring);
+    options.EnableSensitiveDataLogging();
 });
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -69,6 +70,7 @@ using(var scope = app.Services.CreateScope())
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     context.SeedData(userManager, roleManager);
+    TrainingProgramSeeder.SeedData(context, userManager);
 }
 
 app.Run();

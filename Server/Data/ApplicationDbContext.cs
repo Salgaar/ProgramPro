@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using ProgramPro.Shared.Models;
+using ProgramPro.Server.Controllers;
 using ProgramPro.Shared.Models;
 using System.Reflection.Metadata;
 
@@ -103,9 +103,9 @@ namespace ProgramPro.Server.Data
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Set>()
-                .HasMany(p => p.Entries)
+                .HasOne(p => p.Entry)
                 .WithOne(c => c.Set)
-                .HasForeignKey(x => x.SetId)
+                .HasForeignKey<Entry>(x => x.SetId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<ComponentDefinition>()
@@ -164,15 +164,10 @@ namespace ProgramPro.Server.Data
             }
         }
 
-        public void ClearDatabase()
+        public void SeedData(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
         {
             Database.EnsureDeleted();
             Database.EnsureCreated();
-        }
-
-        public void SeedData(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
-        {
-            //ClearDatabase();
             AddRoles(roleManager);
             SeedApplicationUsers(userManager);
         }
