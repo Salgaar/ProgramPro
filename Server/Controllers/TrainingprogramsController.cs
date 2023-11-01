@@ -71,6 +71,49 @@ namespace ProgramPro.Server.Controllers
             return JsonConvert.SerializeObject(programs, Extensions.JsonOptions.jsonSettings);
         }
 
+        [HttpGet("Active")]
+        public async Task<ActionResult<string>> GetActiveTrainingProgram()
+        {
+            var program = await _context.TrainingPrograms.FirstOrDefaultAsync(x => x.Active == true);
+            /*.Where(x => x.ApplicationUserId == UserHelper.GetUserId(User))*/
+            if(program == null)
+            {
+                return null;
+            }
+
+                await _context.Entry(program)
+                        .Collection(x => x.Components)
+                        .LoadAsync();
+
+                foreach (var component in program.Components)
+                {
+                    await _context.Entry(component)
+                        .Collection(x => x.Days)
+                        .LoadAsync();
+
+                    foreach (var day in component.Days)
+                    {
+                        await _context.Entry(day)
+                            .Collection(x => x.WorkoutExercises)
+                            .Query()
+                            .Include(x => x.Exercise)
+                            .LoadAsync();
+
+                        foreach (var workoutExercise in day.WorkoutExercises)
+                        {
+                            await _context.Entry(workoutExercise)
+                                .Collection(x => x.Sets)
+                                .Query()
+                                .Include(x => x.Entry)
+                                .LoadAsync();
+                        }
+                    }
+                }
+            
+
+            return JsonConvert.SerializeObject(program, Extensions.JsonOptions.jsonSettings);
+        }
+
         // GET: api/Trainingprograms/5
         [HttpGet("{id}")]
         public async Task<ActionResult<string>> GetTrainingprogram(Guid id)

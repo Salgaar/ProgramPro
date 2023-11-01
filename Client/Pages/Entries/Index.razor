@@ -1,0 +1,67 @@
+﻿@page "/Entries"
+@inject NavigationManager NavManager
+@inject HttpClient Http
+@inject NotificationService NotificationService
+@inject DialogService DialogService
+
+@if (setVisualizers.Count == 0)
+{
+
+    <RadzenRow Style="padding:100px">
+        <div style="margin:auto; text-align:center;">
+            <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Primary" Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+        </div>
+    </RadzenRow>
+
+}
+else
+{
+    foreach(var visualizer in setVisualizers)
+    {
+        <p>@visualizer.Date</p>
+    }
+}
+
+@code {
+    List<Entry> entries = null;
+    List<SetVisualizer> setVisualizers = new List<SetVisualizer>();
+    bool hasActiveProgram = true;
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var trainingPrograms = await Http.GetFromJsonAsync<List<TrainingProgram>>("api/Trainingprograms");
+            foreach (var program in trainingPrograms)
+            {
+                foreach (var component in program.Components)
+                {
+                    foreach (var day in component.Days)
+                    {
+                        foreach (var workoutExercise in day.WorkoutExercises)
+                        {
+                            foreach (var set in workoutExercise.Sets)
+                            {
+                                if (set.Entry == null)
+                                {
+                                    var setVisualizer = new SetVisualizer
+                                        {
+                                            Date = day.Date,
+                                            Exercise = workoutExercise.Exercise,
+                                            Set = set,
+                                            TrainingProgram = program
+                                        };
+                                    setVisualizers.Add(setVisualizer);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            StateHasChanged();
+        }
+        catch (AccessTokenNotAvailableException exception)
+        {
+            exception.Redirect();
+        }
+    }
+}
