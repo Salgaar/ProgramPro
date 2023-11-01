@@ -4,28 +4,40 @@
 @inject NotificationService NotificationService
 @inject DialogService DialogService
 
-@if (setVisualizers.Count == 0)
+@if (initialized == false)
 {
-
     <RadzenRow Style="padding:100px">
         <div style="margin:auto; text-align:center;">
             <RadzenProgressBarCircular ProgressBarStyle="ProgressBarStyle.Primary" Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
         </div>
     </RadzenRow>
-
 }
 else
 {
-    foreach(var visualizer in setVisualizers)
-    {
-        <p>@visualizer.Date</p>
-    }
+    <RadzenDataList WrapItems="true" AllowPaging="false" Data="@pageItems" TItem="WorkoutExerciseVisualizer">
+        <Template Context="workoutExerciseVisualizer">
+            <RadzenCard Style="flex: 1;">
+                <RadzenStack AlignItems="AlignItems.Center" Gap="1rem">
+                    <RadzenStack Gap="0">
+                        <RadzenText Text="@workoutExerciseVisualizer?.TrainingProgram.Name" />
+                        <RadzenText Text="@workoutExerciseVisualizer?.Date.ToShortDateString()" />
+                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.P" TextAlign="TextAlign.Center">@workoutExerciseVisualizer?.Exercise.Name</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body2" TextAlign="TextAlign.Center">@workoutExerciseVisualizer.MissingEntryAmount missing entries</RadzenText>
+                        </RadzenStack>
+                    </RadzenStack>
+                </RadzenCard>
+            </Template>
+        </RadzenDataList>
+
+    <RadzenPager Density="Density.Default" HorizontalAlign="HorizontalAlign.Center" Count="workoutExerciseVisualizers.Count" PageSize="pageSize" PageNumbersCount="6" PageChanged="@PageChanged" />
 }
 
 @code {
     List<Entry> entries = null;
-    List<SetVisualizer> setVisualizers = new List<SetVisualizer>();
-    bool hasActiveProgram = true;
+    List<WorkoutExerciseVisualizer> workoutExerciseVisualizers = new List<WorkoutExerciseVisualizer>();
+    List<WorkoutExerciseVisualizer> pageItems = new List<WorkoutExerciseVisualizer>();
+    bool initialized = false;
+    int pageSize = 5;
     protected override async Task OnInitializedAsync()
     {
         try
@@ -43,25 +55,50 @@ else
                             {
                                 if (set.Entry == null)
                                 {
-                                    var setVisualizer = new SetVisualizer
+                                    bool found = false;
+                                    for(int i = 0; i < workoutExerciseVisualizers.Count && found == false; i++)
+                                    {
+                                        if (workoutExerciseVisualizers[i].WorkoutExerciseId == workoutExercise.Id)
                                         {
-                                            Date = day.Date,
-                                            Exercise = workoutExercise.Exercise,
-                                            Set = set,
-                                            TrainingProgram = program
-                                        };
-                                    setVisualizers.Add(setVisualizer);
+                                            found = true;
+                                            workoutExerciseVisualizers[i].MissingEntryAmount++;
+                                        }
+                                    }
+                                    if(!found)
+                                    {
+                                        var newWorkoutExerciseVisualizer = new WorkoutExerciseVisualizer
+                                            {
+                                                WorkoutExerciseId = workoutExercise.Id,
+                                                Date = day.Date,
+                                                Exercise = workoutExercise.Exercise,
+                                                MissingEntryAmount = 1,
+                                                TrainingProgram = program
+                                            };
+                                        workoutExerciseVisualizers.Add(newWorkoutExerciseVisualizer);
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
+            pageItems = GetPageItems(0, pageSize);
+            initialized = true;
             StateHasChanged();
         }
         catch (AccessTokenNotAvailableException exception)
         {
             exception.Redirect();
         }
+    }
+
+    void PageChanged(PagerEventArgs args)
+    {
+        pageItems = GetPageItems(args.Skip, args.Top);
+    }
+
+    List<WorkoutExerciseVisualizer> GetPageItems(int skip, int take)
+    {
+        return workoutExerciseVisualizers.Skip(skip).Take(take).ToList();
     }
 }

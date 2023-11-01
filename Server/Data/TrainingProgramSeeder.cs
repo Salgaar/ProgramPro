@@ -4,6 +4,7 @@ using ProgramPro.Shared.Models;
 using Microsoft.Data.SqlClient;
 using Humanizer;
 using System.Collections.Generic;
+using System.Linq.Dynamic.Core.CustomTypeProviders;
 
 namespace ProgramPro.Server.Data
 {
@@ -51,16 +52,18 @@ namespace ProgramPro.Server.Data
                 for (int j = 1; j <= 10; j++)
                 {
                     var currentDate = startDate.AddDays((i - 1) * 10 + (j - 1));
+                    var day = new Day
+                    {
+                        Id = (i - 1) * 10 + j,
+                        ComponentId = i,
+                        Date = currentDate,
+                        Type = GetDayType(currentDate)
+                    };
                     using (var transaction = _context.Database.BeginTransaction())
                     {
                         _context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT [dbo].[Days] ON");
 
-                        _context.Add(new Day
-                        {
-                            Id = (i - 1) * 10 + j,
-                            ComponentId = i,
-                            Date = currentDate
-                        });
+                        _context.Add(day);
 
                         _context.SaveChanges();
 
@@ -69,49 +72,153 @@ namespace ProgramPro.Server.Data
                         transaction.Commit();
                     }
 
-                    // Tilføj 3 WorkoutExercises til hver dag
-                    for (int k = 1; k <= 3; k++)
+                    if(day.Type == DayType.Training)
                     {
-                        var exerciseId = k; // Vælg en øvelse - 1, 2 eller 3
-                        var workoutExercise = new WorkoutExercise
+                        if(IsUpper(day.Date))
                         {
-                            Id = ((i - 1) * 10 + j - 1) * 3 + k,
-                            DayId = (i - 1) * 10 + j,
-                            ExerciseId = exerciseId
-                        };
-                        using (var transaction = _context.Database.BeginTransaction())
+                            for (int k = 1; k <= 2; k++)
+                            {
+                                var exerciseId = k; // Vælg en øvelse - 1, 2 eller 3
+                                var workoutExercise = new WorkoutExercise
+                                {
+                                    Id = ((i - 1) * 10 + j - 1) * 3 + k,
+                                    DayId = day.Id,
+                                    ExerciseId = exerciseId
+                                };
+                                using (var transaction = _context.Database.BeginTransaction())
+                                {
+                                    _context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT [dbo].[WorkoutExercises] ON");
+
+                                    _context.Add(workoutExercise);
+
+                                    _context.SaveChanges();
+
+                                    _context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT [dbo].[WorkoutExercises] OFF");
+
+                                    transaction.Commit();
+                                }
+
+                                // Opret planlagte sæt
+                                var plannedSets = GeneratePlannedSets(exerciseId, startDate, currentDate, workoutExercise.Id);
+                                foreach (var plannedSet in plannedSets)
+                                {
+                                    _context.Add(plannedSet);
+                                }
+                                _context.SaveChanges();
+
+                                // Opret faktiske resultater for sæt
+                                var actualSets = GenerateActualSets(plannedSets, i); // Pass the component number
+
+                                for(int o = 0; o < 3; o++)
+                                {
+                                    var random = new Random();
+                                    int l = random.Next(0, 30);
+                                    if (actualSets.Count > l)
+                                    {
+                                        actualSets.Remove(actualSets[l]);
+                                    }
+                                }
+
+                                foreach (var actualSet in actualSets)
+                                {
+                                    _context.Add(actualSet);
+                                }
+                                _context.SaveChanges();
+
+                            }
+                        }
+                        else
                         {
-                            _context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT [dbo].[WorkoutExercises] ON");
+                            var exerciseId = 3; // Vælg en øvelse - 1, 2 eller 3
+                            var workoutExercise = new WorkoutExercise
+                            {
+                                Id = ((i - 1) * 10 + j - 1) * 3 + exerciseId,
+                                DayId = day.Id,
+                                ExerciseId = exerciseId
+                            };
+                            using (var transaction = _context.Database.BeginTransaction())
+                            {
+                                _context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT [dbo].[WorkoutExercises] ON");
 
-                            _context.Add(workoutExercise);
+                                _context.Add(workoutExercise);
 
+                                _context.SaveChanges();
+
+                                _context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT [dbo].[WorkoutExercises] OFF");
+
+                                transaction.Commit();
+                            }
+
+                            // Opret planlagte sæt
+                            var plannedSets = GeneratePlannedSets(exerciseId, startDate, currentDate, workoutExercise.Id);
+                            foreach (var plannedSet in plannedSets)
+                            {
+                                _context.Add(plannedSet);
+                            }
                             _context.SaveChanges();
 
-                            _context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT [dbo].[WorkoutExercises] OFF");
 
-                            transaction.Commit();
+                            // Opret faktiske resultater for sæt
+                            var actualSets = GenerateActualSets(plannedSets, i); // Pass the component number
+
+                            for (int o = 0; o < 3; o++)
+                            {
+                                var random = new Random();
+                                int l = random.Next(0, 30);
+                                if (actualSets.Count > l)
+                                {
+                                    actualSets.Remove(actualSets[l]);
+                                }
+                            }
+
+                            foreach (var actualSet in actualSets)
+                            {
+                                _context.Add(actualSet);
+                            }
+                            _context.SaveChanges();
                         }
-
-                        // Opret planlagte sæt
-                        var plannedSets = GeneratePlannedSets(exerciseId, startDate, currentDate, workoutExercise.Id);
-                        foreach (var plannedSet in plannedSets)
-                        {
-                            _context.Add(plannedSet);
-                        }
-                        _context.SaveChanges();
-
-
-                        // Opret faktiske resultater for sæt
-                        var actualSets = GenerateActualSets(plannedSets, i); // Pass the component number
-                        foreach (var actualSet in actualSets)
-                        {
-                            _context.Add(actualSet);
-                        }
-                        _context.SaveChanges();
-
                     }
                 }
             }
+        }
+
+        private static DayType GetDayType(DateTime date)
+        {
+            DayType dayType;
+            switch(date.DayOfWeek)
+            {
+                case DayOfWeek.Wednesday:
+                    dayType = DayType.Rest;
+                    break;
+                case DayOfWeek.Thursday:
+                    dayType = DayType.Rest;
+                    break;
+                case DayOfWeek.Sunday:
+                    dayType = DayType.Rest;
+                    break;
+                default:
+                    dayType = DayType.Training;
+                    break;
+            }
+            return dayType;
+        }
+
+        private static bool IsUpper(DateTime date)
+        {
+            bool isUpper;
+            switch (date.DayOfWeek)
+            {
+                case DayOfWeek.Tuesday:
+                    isUpper = true;
+                    break;
+                case DayOfWeek.Saturday:
+                    isUpper = true;
+                    break;
+                default:
+                    isUpper = false;
+                    break;
+            }
+            return isUpper;
         }
 
         private static List<Set> GeneratePlannedSets(int exerciseId, DateTime startDate, DateTime currentDate, int workoutExerciseId)
@@ -146,19 +253,22 @@ namespace ProgramPro.Server.Data
 
             foreach (var plannedSet in plannedSets)
             {
-                var actualReps = plannedSet.Reps - random.Next(0, 2); // Variation in reps
-                var plannedRIRRange = plannedSet.RIR.Split('-');
-                var minRIR = int.Parse(plannedRIRRange[0]);
-                var maxRIR = int.Parse(plannedRIRRange[1]);
-                var actualRIR = random.Next(minRIR, maxRIR + 1); // Variation in RIR
 
-                actualSets.Add(new Entry
-                {
-                    SetId = plannedSet.Id,
-                    Weight = plannedSet.Weight,
-                    Reps = actualReps,
-                    RIR = actualRIR.ToString(),
-                });
+                    var actualReps = plannedSet.Reps - random.Next(0, 2); // Variation in reps
+                    var plannedRIRRange = plannedSet.RIR.Split('-');
+                    var minRIR = int.Parse(plannedRIRRange[0]);
+                    var maxRIR = int.Parse(plannedRIRRange[1]);
+                    var actualRIR = random.Next(minRIR, maxRIR + 1); // Variation in RIR
+
+                    actualSets.Add(new Entry
+                    {
+                        SetId = plannedSet.Id,
+                        Weight = plannedSet.Weight,
+                        Reps = actualReps,
+                        RIR = actualRIR.ToString(),
+                    });
+                
+                
             }
 
             return actualSets;

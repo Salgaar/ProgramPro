@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace ProgramPro.Shared.Models.DataVisualizer
 {
-    public class SetVisualizer
+    public class WorkoutExerciseVisualizer
     {
-        public Set Set {  get; set; }
+        public int WorkoutExerciseId { get; set; }
+        public int MissingEntryAmount { get; set; }
         public DateTime Date { get; set; }
         public TrainingProgram TrainingProgram { get; set; }
         public Exercise Exercise { get; set; }
